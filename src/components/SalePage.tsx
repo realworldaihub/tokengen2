@@ -22,7 +22,9 @@ import {
 import { useWallet } from '../hooks/useWallet';
 import { useSaleContract } from '../hooks/useSaleContract';
 import { WalletConnection } from './WalletConnection';
+import { TokenMetadataDisplay } from './TokenMetadataDisplay';
 import { ReferralSystem } from './presale/ReferralSystem';
+import { metadataService } from '../services/metadataService';
 
 interface SalePageProps {
   contractAddress: string;
@@ -48,6 +50,7 @@ export const SalePage: React.FC<SalePageProps> = ({ contractAddress }) => {
   const [copied, setCopied] = useState(false);
   const [activeTab, setActiveTab] = useState<'overview' | 'buyers' | 'referral'>('overview');
   const [showEmergencyModal, setShowEmergencyModal] = useState(false);
+  const [tokenMetadata, setTokenMetadata] = useState(null);
 
   useEffect(() => {
     loadSaleData();
@@ -58,6 +61,22 @@ export const SalePage: React.FC<SalePageProps> = ({ contractAddress }) => {
       loadUserInfo(address);
     }
   }, [isConnected, address, loadUserInfo]);
+
+  // Load token metadata when sale data is available
+  useEffect(() => {
+    if (saleData?.tokenAddress) {
+      const fetchTokenMetadata = async () => {
+        try {
+          const metadata = await metadataService.getTokenMetadata(saleData.tokenAddress);
+          setTokenMetadata(metadata);
+        } catch (error) {
+          console.error('Error fetching token metadata:', error);
+        }
+      };
+      
+      fetchTokenMetadata();
+    }
+  }, [saleData?.tokenAddress]);
 
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
@@ -254,10 +273,14 @@ export const SalePage: React.FC<SalePageProps> = ({ contractAddress }) => {
                   <Globe className="w-6 h-6 text-white" />
                 )}
               </div>
-              <div>
+              {tokenMetadata ? (
+                <TokenMetadataDisplay metadata={tokenMetadata} size="md" showDescription={false} />
+              ) : (
+                <div>
                 <h1 className="text-2xl font-bold text-white">{saleData.saleName}</h1>
                 <p className="text-gray-300">{saleData.tokenName} ({saleData.tokenSymbol})</p>
-              </div>
+                </div>
+              )}
             </div>
             <WalletConnection />
           </div>
@@ -301,6 +324,14 @@ export const SalePage: React.FC<SalePageProps> = ({ contractAddress }) => {
           <div className="lg:col-span-2 space-y-6">
             {activeTab === 'overview' && (
               <div className="space-y-6">
+                {/* Token Info with Metadata */}
+                {tokenMetadata && (
+                  <div className="bg-white/5 backdrop-blur-sm rounded-xl p-6 border border-white/10">
+                    <h2 className="text-xl font-semibold text-white mb-4">Token Information</h2>
+                    <TokenMetadataDisplay metadata={tokenMetadata} size="lg" />
+                  </div>
+                )}
+
                 {/* Sale Status Banner */}
                 <div className={`rounded-xl p-6 border ${
                   status === 'live' 

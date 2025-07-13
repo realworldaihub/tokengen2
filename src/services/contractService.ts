@@ -261,6 +261,8 @@ export class ContractService {
       return {
         contractAddress: result.contractAddress,
         transactionHash: result.transactionHash,
+        tokenName: config.name,
+        tokenSymbol: config.symbol,
         network: config.network,
         explorerUrl: `${config.network.explorerUrl}/token/${result.contractAddress}`,
         gasUsed: result.gasUsed,

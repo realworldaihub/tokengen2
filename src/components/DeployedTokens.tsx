@@ -16,6 +16,8 @@ import { Network } from '../types';
 import { networks } from '../data/networks';
 import { contractService } from '../services/contractService';
 import { web3Service } from '../services/web3Service';
+import { metadataService } from '../services/metadataService';
+import { TokenMetadata } from '../types/tokenMetadata';
 
 interface DeployedToken {
   id: string;
@@ -32,6 +34,7 @@ interface DeployedToken {
   status: 'active' | 'paused' | 'verified';
   holders: number;
   transfers: number;
+  metadata?: TokenMetadata | null;
 }
 
 export const DeployedTokens: React.FC = () => {
@@ -70,7 +73,8 @@ export const DeployedTokens: React.FC = () => {
             transfers: 0 // Will be updated by fetchTokenStatistics
           };
         });
-        
+          transfers: 0, // Will be updated by fetchTokenStatistics
+          metadata: null // Will be updated by fetchTokenMetadata
         setDeployedTokens(mappedTokens);
         
         // Fetch real statistics for each token
@@ -78,6 +82,9 @@ export const DeployedTokens: React.FC = () => {
       } catch (error) {
         console.error('Error loading deployed tokens:', error);
       }
+      
+      // Fetch metadata for each token
+      await fetchTokenMetadata(mappedTokens);
     };
     
     loadDeployedTokens();
@@ -107,6 +114,31 @@ export const DeployedTokens: React.FC = () => {
       setDeployedTokens(updatedTokens);
     } catch (error) {
       console.error('Error fetching token statistics:', error);
+    }
+  };
+
+  const fetchTokenMetadata = async (tokens: DeployedToken[]) => {
+    try {
+      // Fetch metadata for all tokens in parallel
+      const updatedTokens = await Promise.all(
+        tokens.map(async (token) => {
+          try {
+            const metadata = await metadataService.getTokenMetadata(token.contractAddress);
+            return {
+              ...token,
+              metadata
+            };
+          } catch (error) {
+            console.error(`Error fetching metadata for token ${token.contractAddress}:`, error);
+            return token; // Return original token if metadata fetch fails
+          }
+        })
+      );
+      
+      // Update state with metadata
+      setDeployedTokens(updatedTokens);
+    } catch (error) {
+      console.error('Error fetching token metadata:', error);
     }
   };
 
@@ -367,7 +399,15 @@ export const DeployedTokens: React.FC = () => {
               <div key={token.id} className="bg-white/5 backdrop-blur-sm rounded-xl p-6 border border-white/10">
                 <div className="flex items-start justify-between">
                   <div className="flex items-start space-x-4">
-                    <div className="text-3xl">{getNetworkIcon(token.network.id)}</div>
+                    {token.metadata?.logoUrl ? (
+                      <img 
+                        src={token.metadata.logoUrl} 
+                        alt={token.name} 
+                        className="w-12 h-12 rounded-full object-cover"
+                      />
+                    ) : (
+                      <div className="text-3xl">{getNetworkIcon(token.network.id)}</div>
+                    )}
                     
                     <div className="flex-1">
                       <div className="flex items-center space-x-3 mb-2">
@@ -398,6 +438,20 @@ export const DeployedTokens: React.FC = () => {
                           </div>
                         </div>
                       </div>
+                      
+                      {/* Token Tags */}
+                      {token.metadata?.tags && token.metadata.tags.length > 0 && (
+                        <div className="flex flex-wrap gap-2 mb-4">
+                          {token.metadata.tags.map(tag => (
+                            <span
+                              key={tag}
+                              className="px-2 py-1 bg-blue-500/20 text-blue-300 rounded-full text-xs"
+                            >
+                              {tag}
+                            </span>
+                          ))}
+                        </div>
+                      )}
                       
                       <div className="flex items-center space-x-2 mb-4">
                         <span className="text-sm text-gray-300">Contract:</span>

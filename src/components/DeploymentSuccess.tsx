@@ -1,6 +1,7 @@
 import React from 'react';
 import { CheckCircle, ExternalLink, Copy, Share2, Download, RefreshCw, ArrowLeft } from 'lucide-react';
 import { DeploymentResult } from '../types';
+import { TokenMetadataForm } from './TokenMetadataForm';
 
 interface DeploymentSuccessProps {
   result: DeploymentResult;
@@ -9,6 +10,7 @@ interface DeploymentSuccessProps {
 
 export const DeploymentSuccess: React.FC<DeploymentSuccessProps> = ({ result, onStartNew }) => {
   const [copied, setCopied] = React.useState<string | null>(null);
+  const [showMetadataForm, setShowMetadataForm] = React.useState(false);
 
   const copyToClipboard = (text: string, type: string) => {
     navigator.clipboard.writeText(text);
@@ -147,6 +149,40 @@ export const DeploymentSuccess: React.FC<DeploymentSuccessProps> = ({ result, on
               </div>
             </div>
           </div>
+        </div>
+
+        {/* Token Metadata */}
+        <div className="bg-white/5 backdrop-blur-sm rounded-xl p-8 border border-white/10 mb-8">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-2xl font-semibold text-white">Token Metadata</h2>
+            <button
+              onClick={() => setShowMetadataForm(!showMetadataForm)}
+              className="text-blue-400 hover:text-blue-300 text-sm font-medium"
+            >
+              {showMetadataForm ? 'Hide Form' : 'Add Metadata'}
+            </button>
+          </div>
+          
+          {showMetadataForm ? (
+            <TokenMetadataForm
+              tokenAddress={result.contractAddress}
+              tokenName={result.tokenName}
+              tokenSymbol={result.tokenSymbol}
+              isOwner={true}
+            />
+          ) : (
+            <div className="text-center py-8">
+              <p className="text-gray-300 mb-4">
+                Add metadata to your token to make it more discoverable and provide information to users.
+              </p>
+              <button
+                onClick={() => setShowMetadataForm(true)}
+                className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white px-6 py-3 rounded-lg font-medium transition-all duration-200"
+              >
+                Add Token Metadata
+              </button>
+            </div>
+          )}
         </div>
 
         {/* Actions */}

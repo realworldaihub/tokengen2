@@ -24,9 +24,11 @@ import { WalletConnection } from './WalletConnection';
 import { MintTokensPanel } from './tokenManagement/MintTokensPanel';
 import { BurnTokensPanel } from './tokenManagement/BurnTokensPanel';
 import { FeeManagementPanel } from './tokenManagement/FeeManagementPanel';
+import { TokenMetadataForm } from './TokenMetadataForm';
 import { RedistributionPanel } from './tokenManagement/RedistributionPanel';
 import { VestingManagementPanel } from './tokenManagement/VestingManagementPanel';
 import { VerificationPanel } from './tokenManagement/VerificationPanel';
+import { metadataService } from '../services/metadataService';
 
 export const TokenManagement: React.FC = () => {
   // Get token address from URL
@@ -35,6 +37,8 @@ export const TokenManagement: React.FC = () => {
   const { isConnected, address } = useWallet();
   const [copied, setCopied] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<string>('overview');
+  const [tokenMetadata, setTokenMetadata] = useState<TokenMetadata | null>(null);
+  const [isLoadingMetadata, setIsLoadingMetadata] = useState(false);
 
   const {
     tokenData,
@@ -52,8 +56,22 @@ export const TokenManagement: React.FC = () => {
   useEffect(() => {
     if (tokenAddress && isConnected) {
       loadTokenData(tokenAddress);
+      loadTokenMetadata(tokenAddress);
     }
   }, [tokenAddress, isConnected, loadTokenData]);
+
+  // Load token metadata
+  const loadTokenMetadata = async (address: string) => {
+    setIsLoadingMetadata(true);
+    try {
+      const metadata = await metadataService.getTokenMetadata(address);
+      setTokenMetadata(metadata);
+    } catch (error) {
+      console.error('Error loading token metadata:', error);
+    } finally {
+      setIsLoadingMetadata(false);
+    }
+  };
 
   const copyToClipboard = (text: string, type: string) => {
     navigator.clipboard.writeText(text);
@@ -128,6 +146,14 @@ export const TokenManagement: React.FC = () => {
       ownerOnly: false
     });
     
+    features.push({
+      id: 'metadata',
+      name: 'Token Metadata',
+      icon: Tag,
+      description: 'Manage token metadata and logo',
+      ownerOnly: false
+    });
+    
     return features;
   };
 
@@ -181,6 +207,17 @@ export const TokenManagement: React.FC = () => {
         return (
           <VerificationPanel
             tokenData={tokenData}
+          />
+        );
+      case 'metadata':
+        return (
+          <TokenMetadataForm
+            tokenAddress={tokenData.address}
+            tokenName={tokenData.name}
+            tokenSymbol={tokenData.symbol}
+            isOwner={isOwner}
+            initialMetadata={tokenMetadata || undefined}
+            onSave={(metadata) => setTokenMetadata(metadata)}
           />
         );
       default:

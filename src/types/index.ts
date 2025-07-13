@@ -47,6 +47,8 @@ export type VestingCategory = 'team' | 'advertising' | 'publicSale' | 'privateSa
 export interface DeploymentResult {
   contractAddress: string;
   transactionHash: string;
+  tokenName?: string;
+  tokenSymbol?: string;
   network: Network;
   explorerUrl: string;
   gasUsed: string;
