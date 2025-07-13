@@ -62,27 +62,6 @@ class SolanaService {
   }
 
   // Request airdrop (only works on devnet/testnet)
-  async requestAirdrop(publicKey: string, amount: number = 1): Promise<string> {
-    try {
-      const connection = this.getConnection();
-      const key = new PublicKey(publicKey);
-      
-      if (!this.network?.isTestnet) {
-        throw new AppError('Airdrops are only available on devnet and testnet', ErrorType.VALIDATION);
-      }
-      
-      const signature = await connection.requestAirdrop(
-        key,
-        amount * LAMPORTS_PER_SOL
-      );
-      
-      await connection.confirmTransaction(signature);
-      return signature;
-    } catch (error) {
-      console.error('Error requesting airdrop:', error);
-      throw new AppError('Failed to request airdrop', ErrorType.NETWORK, error);
-    }
-  }
 
   // Create a new SPL token
   async createToken(
@@ -417,7 +396,7 @@ class SolanaService {
     }
   }
 
-  // Request SOL airdrop (devnet/testnet only)
+  // Request airdrop (devnet/testnet only)
   async requestAirdrop(address: string, amount: number = 1): Promise<string> {
     try {
       const connection = this.getConnection();
@@ -426,15 +405,15 @@ class SolanaService {
         throw new AppError('Airdrops are only available on devnet and testnet', ErrorType.VALIDATION);
       }
       
-      let publicKey;
+      let key;
       try {
-        publicKey = new PublicKey(address);
+        key = new PublicKey(address);
       } catch (error) {
         throw new AppError('Invalid wallet address', ErrorType.VALIDATION);
       }
       
       const signature = await connection.requestAirdrop(
-        publicKey,
+        key,
         amount * LAMPORTS_PER_SOL
       );
       
