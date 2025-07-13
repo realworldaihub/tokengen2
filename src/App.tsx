@@ -10,6 +10,9 @@ import { DeployedTokens } from './components/DeployedTokens';
 import { SaleRouter } from './components/SaleRouter';
 import { SaleExplorer } from './components/SaleExplorer';
 import { TokenManagement } from './components/TokenManagement';
+import { SolanaIntegration } from './components/SolanaIntegration';
+import { SolanaTokenManagement } from './components/SolanaTokenManagement';
+import { SolanaAirdrop } from './components/SolanaAirdrop';
 import { LiquidityLock } from './components/LiquidityLock';
 import { Airdrop } from './components/Airdrop';
 import { NotFound } from './components/NotFound';
@@ -35,7 +38,7 @@ declare global {
 function App() {
   const { isTestnetMode } = useNetworkMode();
   const { isConnected, chainId, switchToNetwork, disconnectWallet } = useWallet();
-  const [currentStep, setCurrentStep] = useState<'landing' | 'builder' | 'vesting' | 'review' | 'success' | 'presale' | 'sales' | 'tokens' | 'sale' | 'explore' | 'manage' | 'liquidity-lock' | 'airdrop'>('landing');
+  const [currentStep, setCurrentStep] = useState<'landing' | 'builder' | 'vesting' | 'review' | 'success' | 'presale' | 'sales' | 'tokens' | 'sale' | 'explore' | 'manage' | 'liquidity-lock' | 'airdrop' | 'solana' | 'solana-manage' | 'solana-airdrop'>('landing');
   const [tokenConfig, setTokenConfig] = useState<TokenConfig | null>(null);
   const [deploymentResult, setDeploymentResult] = useState<DeploymentResult | null>(null);
 
@@ -82,6 +85,10 @@ function App() {
   
   const handleAirdrop = () => {
     setCurrentStep('airdrop');
+  };
+  
+  const handleSolana = () => {
+    setCurrentStep('solana');
   };
 
   const handleTokenConfigComplete = (config: TokenConfig) => {
@@ -133,6 +140,7 @@ function App() {
           onExploreSales={handleExploreSales} 
           onLiquidityLock={handleLiquidityLock}
           onAirdrop={handleAirdrop}
+          onSolana={handleSolana}
         />
         <NetworkModeIndicator />
         <ModeBanner />
@@ -263,6 +271,27 @@ function App() {
           <ModeBanner />
         </>
       );
+      
+    case 'solana':
+      return (
+        <>
+          <SolanaIntegration />
+        </>
+      );
+      
+    case 'solana-manage':
+      return (
+        <>
+          <SolanaTokenManagement />
+        </>
+      );
+      
+    case 'solana-airdrop':
+      return (
+        <>
+          <SolanaAirdrop />
+        </>
+      );
     
     case '404':
       return (
@@ -275,7 +304,7 @@ function App() {
     
     default:
       // Check if this is a valid route
-      const validRoutes = ['landing', 'builder', 'vesting', 'review', 'success', 'presale', 'sales', 'tokens', 'sale', 'explore', 'manage', 'liquidity-lock', 'airdrop'];
+      const validRoutes = ['landing', 'builder', 'vesting', 'review', 'success', 'presale', 'sales', 'tokens', 'sale', 'explore', 'manage', 'liquidity-lock', 'airdrop', 'solana', 'solana-manage', 'solana-airdrop'];
       if (!validRoutes.includes(currentStep)) {
         return (
           <>
@@ -295,6 +324,7 @@ function App() {
             onExploreSales={handleExploreSales}
             onLiquidityLock={handleLiquidityLock}
             onAirdrop={handleAirdrop}
+            onSolana={handleSolana}
           />
           <NetworkModeIndicator />
           <ModeBanner />
