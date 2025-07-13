@@ -71,10 +71,9 @@ export const DeployedTokens: React.FC = () => {
             status: 'verified',
             holders: 0, // Will be updated by fetchTokenStatistics
             transfers: 0 // Will be updated by fetchTokenStatistics
-          };
-        });
           transfers: 0, // Will be updated by fetchTokenStatistics
           metadata: null // Will be updated by fetchTokenMetadata
+        });
         setDeployedTokens(mappedTokens);
         
         // Fetch real statistics for each token
