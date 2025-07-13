@@ -13,6 +13,8 @@ import {
   Calendar
 } from 'lucide-react';
 import { contractService } from '../services/contractService';
+import { metadataService } from '../services/metadataService';
+import { TokenMetadata } from '../types/tokenMetadata';
 
 interface PublicSale {
   id: string;
@@ -30,6 +32,7 @@ interface PublicSale {
   endDate: string;
   network: string;
   networkSymbol: string;
+  metadata?: TokenMetadata | null;
 }
 
 export const SaleExplorer: React.FC = () => {
@@ -70,6 +73,9 @@ export const SaleExplorer: React.FC = () => {
         
         setSales(mappedSales);
         setFilteredSales(mappedSales);
+        
+        // Fetch metadata for each sale
+        fetchSaleMetadata(mappedSales);
       } catch (error) {
         console.error('Error loading sales:', error);
       }
@@ -77,6 +83,34 @@ export const SaleExplorer: React.FC = () => {
     
     loadSales();
   }, []);
+
+  const fetchSaleMetadata = async (sales: PublicSale[]) => {
+    try {
+      // Fetch metadata for all sales in parallel
+      const updatedSales = await Promise.all(
+        sales.map(async (sale) => {
+          try {
+            if (sale.contractAddress) {
+              const metadata = await metadataService.getTokenMetadata(sale.contractAddress);
+              return {
+                ...sale,
+                metadata
+              };
+            }
+            return sale;
+          } catch (error) {
+            console.error(`Error fetching metadata for sale ${sale.id}:`, error);
+            return sale;
+          }
+        })
+      );
+      
+      setSales(updatedSales);
+      setFilteredSales(updatedSales);
+    } catch (error) {
+      console.error('Error fetching sale metadata:', error);
+    }
+  };
 
   useEffect(() => {
     let filtered = sales.filter(sale => {
@@ -200,13 +234,21 @@ export const SaleExplorer: React.FC = () => {
             <div key={sale.id} className="bg-white/5 backdrop-blur-sm rounded-xl p-6 border border-white/10 hover:bg-white/10 transition-all duration-200">
               <div className="flex items-start justify-between mb-4">
                 <div className="flex items-center space-x-3">
-                  <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
-                    {sale.saleType === 'private' ? (
-                      <Lock className="w-5 h-5 text-white" />
-                    ) : (
-                      <Globe className="w-5 h-5 text-white" />
-                    )}
-                  </div>
+                  {sale.metadata?.logoUrl ? (
+                    <img 
+                      src={sale.metadata.logoUrl} 
+                      alt={sale.tokenName} 
+                      className="w-10 h-10 rounded-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
+                      {sale.saleType === 'private' ? (
+                        <Lock className="w-5 h-5 text-white" />
+                      ) : (
+                        <Globe className="w-5 h-5 text-white" />
+                      )}
+                    </div>
+                  )}
                   <div>
                     <h3 className="font-semibold text-white">{sale.tokenName}</h3>
                     <p className="text-sm text-gray-300">({sale.tokenSymbol})</p>
@@ -263,6 +305,25 @@ export const SaleExplorer: React.FC = () => {
                   <span className="text-white">{formatDate(sale.endDate)}</span>
                 </div>
               </div>
+
+              {/* Tags */}
+              {sale.metadata?.tags && sale.metadata.tags.length > 0 && (
+                <div className="flex flex-wrap gap-1 mb-4">
+                  {sale.metadata.tags.slice(0, 3).map(tag => (
+                    <span
+                      key={tag}
+                      className="px-2 py-0.5 bg-blue-500/20 text-blue-300 rounded-full text-xs"
+                    >
+                      {tag}
+                    </span>
+                  ))}
+                  {sale.metadata.tags.length > 3 && (
+                    <span className="px-2 py-0.5 bg-blue-500/20 text-blue-300 rounded-full text-xs">
+                      +{sale.metadata.tags.length - 3}
+                    </span>
+                  )}
+                </div>
+              )}
               
               {/* Action Button */}
               <a

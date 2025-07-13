@@ -12,6 +12,8 @@ import Slider from 'react-slick';
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 import { contractService } from '../services/contractService';
+import { metadataService } from '../services/metadataService';
+import { TokenMetadata } from '../types/tokenMetadata';
 
 interface TrendingProject {
   id: string;
@@ -28,6 +30,7 @@ interface TrendingProject {
   status: 'upcoming' | 'live' | 'ended';
   network: string;
   featured: boolean;
+  metadata?: TokenMetadata | null;
 }
 
 export const TrendingProjects: React.FC = () => {
@@ -87,7 +90,26 @@ export const TrendingProjects: React.FC = () => {
         })
       );
       
-      setProjects(mappedProjects);
+      // Fetch metadata for each project
+      const projectsWithMetadata = await Promise.all(
+        mappedProjects.map(async (project) => {
+          try {
+            if (project.contractAddress) {
+              const metadata = await metadataService.getTokenMetadata(project.contractAddress);
+              return {
+                ...project,
+                metadata
+              };
+            }
+            return project;
+          } catch (error) {
+            console.error(`Error fetching metadata for project ${project.id}:`, error);
+            return project;
+          };
+        })
+      );
+      
+      setProjects(projectsWithMetadata);
     } catch (error) {
       console.error('Error loading projects:', error);
     } finally {
@@ -243,7 +265,19 @@ export const TrendingProjects: React.FC = () => {
                 <div key={project.id} className="px-2">
                   <div className="bg-white/5 backdrop-blur-sm rounded-xl p-6 border border-white/10 h-full">
                     <div className="flex items-start justify-between mb-4">
-                      <div>
+                      <div className="flex items-center space-x-3">
+                        {project.metadata?.logoUrl ? (
+                          <img 
+                            src={project.metadata.logoUrl} 
+                            alt={project.tokenName} 
+                            className="w-10 h-10 rounded-full object-cover"
+                          />
+                        ) : (
+                          <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
+                            <Coins className="w-5 h-5 text-white" />
+                          </div>
+                        )}
+                        <div>
                         <div className="flex items-center space-x-2 mb-1">
                           <h3 className="text-xl font-semibold text-white">{project.name}</h3>
                           {project.featured && (
@@ -254,6 +288,7 @@ export const TrendingProjects: React.FC = () => {
                           )}
                         </div>
                         <p className="text-gray-300">{project.tokenName} ({project.tokenSymbol})</p>
+                        </div>
                       </div>
                       
                       <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(project.status)}`}>
@@ -274,6 +309,25 @@ export const TrendingProjects: React.FC = () => {
                         ></div>
                       </div>
                     </div>
+
+                    {/* Tags */}
+                    {project.metadata?.tags && project.metadata.tags.length > 0 && (
+                      <div className="flex flex-wrap gap-1 mb-4">
+                        {project.metadata.tags.slice(0, 3).map(tag => (
+                          <span
+                            key={tag}
+                            className="px-2 py-0.5 bg-blue-500/20 text-blue-300 rounded-full text-xs"
+                          >
+                            {tag}
+                          </span>
+                        ))}
+                        {project.metadata.tags.length > 3 && (
+                          <span className="px-2 py-0.5 bg-blue-500/20 text-blue-300 rounded-full text-xs">
+                            +{project.metadata.tags.length - 3}
+                          </span>
+                        )}
+                      </div>
+                    )}
                     
                     {/* Stats */}
                     <div className="grid grid-cols-2 gap-4 mb-4">
