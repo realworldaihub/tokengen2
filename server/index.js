@@ -9,6 +9,7 @@ const deployRoutes = require('./api/deploy');
 const authRoutes = require('./api/auth');
 const contractRoutes = require('./api/contracts');
 const solanaRoutes = require('./api/solana');
+const solanaRoutes = require('./api/solana');
 const tokenMetadataRoutes = require('./api/token-metadata');
 const connectDB = require('./db');
 const applySecurityMiddleware = require('./middleware/security');
@@ -41,6 +42,7 @@ app.get('/health', (req, res) => {
 app.use('/api/auth', authRoutes);
 app.use('/api/deploy', deployRoutes);
 app.use('/api/contracts', contractRoutes);
+app.use('/api/solana', solanaRoutes);
 app.use('/api/solana', solanaRoutes);
 app.use('/api/token-metadata', tokenMetadataRoutes);
 

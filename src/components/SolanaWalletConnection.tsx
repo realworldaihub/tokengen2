@@ -28,7 +28,7 @@ export const SolanaWalletConnection: React.FC = () => {
   const copyToClipboard = () => {
     if (publicKey) {
       navigator.clipboard.writeText(publicKey);
-      setCopied(true);
+      setCopied(true); 
       setTimeout(() => setCopied(false), 2000);
     }
   };
@@ -41,10 +41,10 @@ export const SolanaWalletConnection: React.FC = () => {
   if (isConnected && publicKey) {
     return (
       <div className="flex items-center space-x-4 flex-wrap">
-        <div className="flex items-center space-x-2">
+        <div className="flex items-center space-x-2 bg-white/10 backdrop-blur-sm rounded-lg px-4 py-2">
           <div className="bg-white/10 backdrop-blur-sm rounded-lg px-4 py-2">
             <div className="flex items-center space-x-2">
-              <div className="text-lg">{network?.icon || '☀️'}</div>
+              <span className="text-lg">{network?.icon || '☀️'}</span>
               <span 
                 className="text-sm font-medium text-white cursor-pointer"
                 onClick={copyToClipboard}
@@ -54,7 +54,7 @@ export const SolanaWalletConnection: React.FC = () => {
                 {copied && <span className="ml-2 text-green-400 text-xs">Copied!</span>}
               </span>
               <div className="flex flex-col ml-2">
-                <span className="text-xs text-blue-300">
+                <span className="text-xs text-yellow-300">
                   {balance} SOL
                 </span>
                 <span className="text-xs text-gray-400">
@@ -115,7 +115,7 @@ export const SolanaWalletConnection: React.FC = () => {
   if (error) {
     return (
       <div className="flex items-center space-x-2">
-        <div className="text-red-400 text-xs mr-2 max-w-[200px] truncate">
+        <div className="text-red-400 text-xs mr-2 max-w-[200px] truncate bg-red-500/10 px-2 py-1 rounded">
           <AlertTriangle className="w-4 h-4 inline mr-1" />
           <span>{error.length > 30 ? error.slice(0, 30) + '...' : error}</span>
         </div>
@@ -127,12 +127,12 @@ export const SolanaWalletConnection: React.FC = () => {
   return (
     <div className="flex items-center space-x-4">
       {isConnecting ? (
-        <div className="flex items-center space-x-2 px-6 py-2 bg-white/10 rounded-lg">
+        <div className="flex items-center space-x-2 px-6 py-2 bg-yellow-500/20 text-yellow-300 rounded-lg">
           <Loader2 className="w-4 h-4 animate-spin" />
           <span className="text-white">Connecting...</span>
         </div>
       ) : (
-        <WalletMultiButton className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white px-6 py-2 rounded-lg font-medium transition-all duration-200 flex items-center space-x-2 disabled:opacity-50" />
+        <WalletMultiButton className="bg-gradient-to-r from-yellow-500 to-orange-600 hover:from-yellow-600 hover:to-orange-700 text-white px-6 py-2 rounded-lg font-medium transition-all duration-200 flex items-center space-x-2 disabled:opacity-50" />
       )}
     </div>
   );

@@ -50,11 +50,11 @@ export const SolanaTokenBuilder: React.FC<SolanaTokenBuilderProps> = ({
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
 
-    if (!config.name.trim()) {
+    if (!config.name || !config.name.trim()) {
       newErrors.name = 'Please enter a token name';
     }
 
-    if (!config.symbol.trim()) {
+    if (!config.symbol || !config.symbol.trim()) {
       newErrors.symbol = 'Please enter a token symbol';
     } else if (config.symbol.length > 10) {
       newErrors.symbol = 'Symbol must be 10 characters or less';
@@ -171,7 +171,7 @@ export const SolanaTokenBuilder: React.FC<SolanaTokenBuilderProps> = ({
               {solanaNetworks.map((network) => (
                 <div
                   key={network.id}
-                  className={`p-3 rounded-lg border cursor-pointer transition-all ${
+                  className={`p-3 rounded-lg border cursor-pointer transition-all relative ${
                     config.network.id === network.id
                       ? 'border-blue-500 bg-blue-500/20 text-blue-400'
                       : 'border-white/20 bg-white/5 text-gray-300 hover:border-white/40'
@@ -182,6 +182,9 @@ export const SolanaTokenBuilder: React.FC<SolanaTokenBuilderProps> = ({
                     <div className="text-2xl mb-1">{network.icon}</div>
                     <div className="text-xs font-medium">{network.name}</div>
                     <div className="text-xs opacity-75">{network.isTestnet ? 'Testnet' : 'Mainnet'}</div>
+                    {config.network.id === network.id && (
+                      <div className="absolute top-2 right-2 w-2 h-2 bg-green-500 rounded-full"></div>
+                    )}
                   </div>
                 </div>
               ))}
@@ -190,7 +193,7 @@ export const SolanaTokenBuilder: React.FC<SolanaTokenBuilderProps> = ({
             {config.network.isTestnet && (
               <div className="p-3 bg-green-500/20 rounded-lg mb-4">
                 <div className="flex items-center space-x-2">
-                  <Info className="w-4 h-4 text-green-400" />
+                  <Info className="w-4 h-4 text-green-400 flex-shrink-0" />
                   <span className="text-green-400 font-medium">Testnet Selected</span>
                 </div>
                 <p className="text-green-300 text-sm mt-1">
@@ -202,7 +205,7 @@ export const SolanaTokenBuilder: React.FC<SolanaTokenBuilderProps> = ({
             {!config.network.isTestnet && (
               <div className="p-3 bg-amber-500/20 rounded-lg mb-4">
                 <div className="flex items-center space-x-2">
-                  <AlertCircle className="w-4 h-4 text-amber-400" />
+                  <AlertCircle className="w-4 h-4 text-amber-400 flex-shrink-0" />
                   <span className="text-amber-400 font-medium">Mainnet Selected</span>
                 </div>
                 <p className="text-amber-300 text-sm mt-1">
@@ -254,8 +257,8 @@ export const SolanaTokenBuilder: React.FC<SolanaTokenBuilderProps> = ({
                       <label htmlFor="metadata" className="text-white font-medium">
                         Token Metadata
                       </label>
-                    </div>
-                    <Info className="w-4 h-4 text-gray-400" />
+                    </div> 
+                    <Info className="w-4 h-4 text-gray-400 flex-shrink-0" />
                   </div>
                   <span className="text-sm text-gray-400">
                     Add on-chain metadata

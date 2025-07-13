@@ -165,14 +165,40 @@ class SolanaService {
   async getTokenInfo(mintAddress: string): Promise<SolanaTokenInfo> {
     try {
       const connection = this.getConnection();
-      const mintPublicKey = new PublicKey(mintAddress);
+      let mintPublicKey;
+      try {
+        mintPublicKey = new PublicKey(mintAddress);
+      } catch (error) {
+        throw new AppError('Invalid mint address format', ErrorType.VALIDATION);
+      }
       
       const mintInfo = await getMint(connection, mintPublicKey);
       
+      // Try to get metadata (this would use Metaplex in a full implementation)
+      let name = 'Unknown';
+      let symbol = 'UNK';
+      
+      try {
+        // This is a simplified approach - in production, use Metaplex to get metadata
+        const metaplexId = await PublicKey.findProgramAddressSync(
+          [
+            Buffer.from('metadata'),
+            new PublicKey('metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s').toBuffer(),
+            mintPublicKey.toBuffer(),
+          ],
+          new PublicKey('metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s')
+        );
+        
+        // In a real implementation, we would fetch and decode the metadata account
+        // For now, we'll just use placeholder values
+      } catch (error) {
+        console.log('Metadata not found, using default values');
+      }
+      
       return {
         mint: mintPublicKey,
-        name: 'Unknown', // Would be fetched from metadata
-        symbol: 'UNK', // Would be fetched from metadata
+        name,
+        symbol,
         decimals: mintInfo.decimals,
         supply: mintInfo.supply.toString(),
         owner: mintInfo.mintAuthority || new PublicKey('11111111111111111111111111111111'),
@@ -237,12 +263,11 @@ class SolanaService {
   // Batch send tokens to multiple recipients
   async batchSendTokens(
     mintAddress: string,
-    fromWalletSecret: Uint8Array,
+    fromWallet: Keypair,
     recipients: { address: string; amount: number }[]
   ): Promise<string> {
     try {
       const connection = this.getConnection();
-      const fromWallet = Keypair.fromSecretKey(fromWalletSecret);
       const mint = new PublicKey(mintAddress);
       
       // Get source token account
@@ -330,8 +355,24 @@ class SolanaService {
   // Check if a wallet has a specific token
   async hasToken(walletAddress: string, mintAddress: string): Promise<boolean> {
     try {
-      const tokenAccounts = await this.getTokenAccounts(walletAddress);
-      return tokenAccounts.some(account => account.mint === mintAddress);
+      try {
+        new PublicKey(walletAddress);
+        new PublicKey(mintAddress);
+      } catch (error) {
+        throw new AppError('Invalid address format', ErrorType.VALIDATION);
+      }
+      
+      const connection = this.getConnection();
+      const wallet = new PublicKey(walletAddress);
+      const mint = new PublicKey(mintAddress);
+      
+      // Find token accounts owned by this wallet for this mint
+      const tokenAccounts = await connection.getParsedTokenAccountsByOwner(
+        wallet,
+        { mint }
+      );
+      
+      return tokenAccounts.value.length > 0;
     } catch (error) {
       console.error('Error checking if wallet has token:', error);
       throw new AppError('Failed to check if wallet has token', ErrorType.NETWORK, error);
@@ -341,17 +382,67 @@ class SolanaService {
   // Get token balance for a specific mint
   async getTokenBalance(walletAddress: string, mintAddress: string): Promise<string> {
     try {
-      const tokenAccounts = await this.getTokenAccounts(walletAddress);
-      const tokenAccount = tokenAccounts.find(account => account.mint === mintAddress);
+      try {
+        new PublicKey(walletAddress);
+        new PublicKey(mintAddress);
+      } catch (error) {
+        throw new AppError('Invalid address format', ErrorType.VALIDATION);
+      }
       
-      if (!tokenAccount) {
+      const connection = this.getConnection();
+      const wallet = new PublicKey(walletAddress);
+      const mint = new PublicKey(mintAddress);
+      
+      // Find token accounts owned by this wallet for this mint
+      const tokenAccounts = await connection.getParsedTokenAccountsByOwner(
+        wallet,
+        { mint }
+      );
+      
+      if (tokenAccounts.value.length === 0) {
         return '0';
       }
       
-      return tokenAccount.amount.toString();
+      // Sum up balances from all accounts (usually just one)
+      let totalBalance = 0;
+      for (const accountInfo of tokenAccounts.value) {
+        const parsedInfo = accountInfo.account.data.parsed.info;
+        totalBalance += parsedInfo.tokenAmount.uiAmount;
+      }
+      
+      return totalBalance.toString();
     } catch (error) {
       console.error('Error getting token balance:', error);
       throw new AppError('Failed to get token balance', ErrorType.NETWORK, error);
+    }
+  }
+
+  // Request SOL airdrop (devnet/testnet only)
+  async requestAirdrop(address: string, amount: number = 1): Promise<string> {
+    try {
+      const connection = this.getConnection();
+      
+      if (!this.network?.isTestnet) {
+        throw new AppError('Airdrops are only available on devnet and testnet', ErrorType.VALIDATION);
+      }
+      
+      let publicKey;
+      try {
+        publicKey = new PublicKey(address);
+      } catch (error) {
+        throw new AppError('Invalid wallet address', ErrorType.VALIDATION);
+      }
+      
+      const signature = await connection.requestAirdrop(
+        publicKey,
+        amount * LAMPORTS_PER_SOL
+      );
+      
+      await connection.confirmTransaction(signature);
+      return signature;
+    } catch (error) {
+      console.error('Error requesting airdrop:', error);
+      throw new AppError('Failed to request airdrop', ErrorType.NETWORK, error);
     }
   }
 }

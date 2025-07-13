@@ -62,8 +62,10 @@ export const useSolanaWallet = () => {
   // Fetch SOL balance
   const fetchBalance = async (address: string) => {
     try {
-      const balance = await solanaService.getBalance(address);
-      setState(prev => ({ ...prev, balance }));
+      if (solanaService.getConnection()) {
+        const balance = await solanaService.getBalance(address);
+        setState(prev => ({ ...prev, balance }));
+      }
     } catch (error) {
       console.error('Error fetching balance:', error);
     }
@@ -124,7 +126,12 @@ export const useSolanaWallet = () => {
   // Request airdrop (devnet/testnet only)
   const requestAirdrop = useCallback(async (amount: number = 1): Promise<string | null> => {
     if (!state.publicKey) {
-      setError('Wallet not connected');
+      setError('Wallet not connected. Please connect your wallet first.');
+      return null;
+    }
+    
+    if (!state.network?.isTestnet) {
+      setError('Airdrops are only available on Devnet or Testnet. Please switch networks.');
       return null;
     }
     
@@ -142,12 +149,12 @@ export const useSolanaWallet = () => {
   return {
     ...state,
     isConnecting,
-    error,
+    error: error as string | null,
     connectWallet,
     disconnectWallet,
     switchNetwork,
     requestAirdrop,
-    refreshBalance: state.publicKey ? () => fetchBalance(state.publicKey!) : undefined,
+    refreshBalance: state.publicKey ? () => fetchBalance(state.publicKey) : undefined,
     availableWallets: wallets,
     currentWallet: wallet
   };

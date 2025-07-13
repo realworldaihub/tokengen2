@@ -59,7 +59,7 @@ export const SolanaIntegration: React.FC = () => {
   const handleRequestAirdrop = async () => {
     if (!isConnected || !publicKey || !network?.isTestnet) return;
     
-    setIsAirdropping(true);
+    setIsAirdropping(true); 
     setAirdropSuccess(null);
     setAirdropError(null);
     
@@ -68,7 +68,7 @@ export const SolanaIntegration: React.FC = () => {
       if (signature) {
         setAirdropSuccess('Successfully requested 1 SOL airdrop');
       } else {
-        throw new Error('Failed to request airdrop');
+        throw new Error('Airdrop request failed. The network may be congested, please try again.');
       }
     } catch (error) {
       console.error('Airdrop error:', error);
@@ -111,7 +111,7 @@ export const SolanaIntegration: React.FC = () => {
   // Dashboard view
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 p-6">
-      <div className="max-w-7xl mx-auto">
+      <div className="max-w-7xl mx-auto relative">
         {/* Header */}
         <div className="mb-8">
           <button
@@ -158,7 +158,7 @@ export const SolanaIntegration: React.FC = () => {
                 <div className="text-2xl font-bold text-white">{balance} SOL</div>
                 <div className="text-gray-300 text-sm">{network?.name || 'Unknown Network'}</div>
                 
-                {network?.isTestnet && (
+                {network?.isTestnet && isConnected && (
                   <button
                     onClick={handleRequestAirdrop}
                     disabled={isAirdropping}
@@ -206,7 +206,7 @@ export const SolanaIntegration: React.FC = () => {
             <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg flex items-center justify-center mb-4">
               <Plus className="w-6 h-6 text-white" />
             </div>
-            <h3 className="text-xl font-semibold text-white mb-2">Create SPL Token</h3>
+            <h3 className="text-xl font-semibold text-white mb-2">Create Solana SPL Token</h3>
             <p className="text-gray-300 mb-6">
               Create a new SPL token on the Solana blockchain with custom parameters
             </p>
@@ -225,7 +225,7 @@ export const SolanaIntegration: React.FC = () => {
             <div className="w-12 h-12 bg-gradient-to-r from-green-500 to-blue-600 rounded-lg flex items-center justify-center mb-4">
               <Send className="w-6 h-6 text-white" />
             </div>
-            <h3 className="text-xl font-semibold text-white mb-2">Airdrop Tool</h3>
+            <h3 className="text-xl font-semibold text-white mb-2">SPL Token Airdrop</h3>
             <p className="text-gray-300 mb-6">
               Send SPL tokens to multiple addresses in a single transaction
             </p>
@@ -243,7 +243,7 @@ export const SolanaIntegration: React.FC = () => {
             <div className="w-12 h-12 bg-gradient-to-r from-purple-500 to-pink-600 rounded-lg flex items-center justify-center mb-4">
               <Coins className="w-6 h-6 text-white" />
             </div>
-            <h3 className="text-xl font-semibold text-white mb-2">My Tokens</h3>
+            <h3 className="text-xl font-semibold text-white mb-2">My SPL Tokens</h3>
             <p className="text-gray-300 mb-6">
               View and manage your SPL tokens on the Solana blockchain
             </p>
@@ -260,7 +260,7 @@ export const SolanaIntegration: React.FC = () => {
 
         {/* Resources Section */}
         <div className="mt-12">
-          <h2 className="text-2xl font-bold text-white mb-6">Solana Resources</h2>
+          <h2 className="text-2xl font-bold text-white mb-6">Solana Developer Resources</h2>
           
           <div className="grid md:grid-cols-3 gap-6">
             <a
@@ -317,7 +317,7 @@ export const SolanaIntegration: React.FC = () => {
         {network && !network.isTestnet && (
           <div className="mt-8 p-4 bg-amber-500/20 border border-amber-500/50 rounded-lg">
             <div className="flex items-start space-x-3">
-              <AlertTriangle className="w-5 h-5 text-amber-400 mt-0.5" />
+              <AlertTriangle className="w-5 h-5 text-amber-400 mt-0.5 flex-shrink-0" />
               <div>
                 <h3 className="font-medium text-amber-400 mb-1">Mainnet Selected</h3>
                 <p className="text-amber-300 text-sm">

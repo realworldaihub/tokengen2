@@ -42,32 +42,42 @@ export const SolanaTokenManagement: React.FC = () => {
   const loadTokenInfo = async () => {
     if (!tokenAddress) return;
     
-    setIsLoading(true);
+    setIsLoading(true); 
     setError(null);
     
     try {
-      // In a real implementation, you would:
-      // 1. Get token info from solanaService
-      // 2. Get token balance for the connected wallet
+      // Fetch token info from API
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3001'}/api/solana/token/${tokenAddress}?networkId=${network?.id || 'solana-devnet'}`);
       
-      // For this demo, we'll use mock data
-      const mockTokenInfo: SolanaTokenInfo = {
-        mint: new PublicKey(tokenAddress),
-        name: 'Demo Token',
-        symbol: 'DEMO',
-        decimals: 9,
-        supply: '1000000000000000000',
-        owner: new PublicKey(publicKey || '11111111111111111111111111111111'),
-        frozenState: false,
-        metadata: {
-          name: 'Demo Token',
-          symbol: 'DEMO',
-          description: 'A demo token for the Solana blockchain',
-          image: 'https://example.com/logo.png'
+      if (!response.ok) {
+        if (response.status === 404) {
+          throw new Error('Token not found');
         }
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to load token information');
+      }
+      
+      const tokenData = await response.json();
+      
+      // Convert to SolanaTokenInfo format
+      const tokenInfo: SolanaTokenInfo = {
+        mint: new PublicKey(tokenData.mint),
+        name: tokenData.name,
+        symbol: tokenData.symbol,
+        decimals: tokenData.decimals,
+        supply: tokenData.supply,
+        owner: new PublicKey(tokenData.owner),
+        frozenState: tokenData.freezeAuthority,
+        metadata: tokenData.metadata
       };
       
-      setTokenInfo(mockTokenInfo);
+      setTokenInfo(tokenInfo);
+      
+      // Get user's balance of this token
+      if (publicKey) {
+        const balance = await solanaService.getTokenBalance(publicKey, tokenAddress);
+        // Update UI with balance
+      }
     } catch (error) {
       console.error('Error loading token info:', error);
       setError('Failed to load token information');
@@ -85,7 +95,7 @@ export const SolanaTokenManagement: React.FC = () => {
   const handleSendTokens = async () => {
     if (!isConnected || !publicKey || !tokenInfo || !recipient || !amount) return;
     
-    setIsSending(true);
+    setIsSending(true); 
     setSendError(null);
     setSendSuccess(null);
     setTxSignature(null);
@@ -104,19 +114,30 @@ export const SolanaTokenManagement: React.FC = () => {
         throw new Error('Invalid amount');
       }
       
-      // In a real implementation, you would:
-      // 1. Get the user's private key securely (or use a signing API)
-      // 2. Call solanaService.sendTokens with the token address, private key, recipient, and amount
-      // 3. Handle the result
+      // Call API to send tokens
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3001'}/api/solana/send`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('authToken')}`
+        },
+        body: JSON.stringify({
+          mintAddress: tokenInfo.mint.toString(),
+          recipient,
+          amount: parsedAmount
+        })
+      });
       
-      // For this demo, we'll simulate a successful transfer
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to send tokens');
+      }
       
-      const mockSignature = 'solana_tx_signature_' + Date.now().toString(36);
-      setTxSignature(mockSignature);
+      const result = await response.json();
+      setTxSignature(result.signature);
       setSendSuccess(`Successfully sent ${amount} ${tokenInfo.symbol} to ${recipient.slice(0, 6)}...${recipient.slice(-4)}`);
       
-      // Clear form
+      // Clear form and refresh token info
       setAmount('');
       setRecipient('');
     } catch (error) {
@@ -234,7 +255,9 @@ export const SolanaTokenManagement: React.FC = () => {
               
               <div className="text-right">
                 <div className="text-2xl font-bold text-white">
-                  1,000,000
+                  {/* This would be the user's balance of this token */}
+                  {/* We would get this from solanaService.getTokenBalance */}
+                  Loading...
                 </div>
                 <div className="text-gray-300">Your Balance</div>
                 <button

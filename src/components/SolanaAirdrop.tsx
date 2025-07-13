@@ -190,7 +190,7 @@ export const SolanaAirdrop: React.FC = () => {
   const handleSendAirdrop = async () => {
     if (!isConnected || !publicKey || !tokenAddress || !tokenInfo) return;
     
-    // Validate recipients
+    // Validate recipients 
     const validRecipients = recipients.filter(r => r.valid);
     if (validRecipients.length === 0) {
       setError('No valid recipients found');
@@ -203,17 +203,36 @@ export const SolanaAirdrop: React.FC = () => {
     setTxSignature(null);
     
     try {
-      // In a real implementation, you would:
-      // 1. Get the user's private key securely (or use a signing API)
-      // 2. Call solanaService.batchSendTokens with the token address, private key, and recipients
-      // 3. Handle the result
+      // Prepare recipient data
+      const formattedRecipients = validRecipients.map(r => ({
+        address: r.address,
+        amount: parseFloat(r.amount)
+      }));
       
-      // For this demo, we'll simulate a successful airdrop
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      // Call API to perform airdrop
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3001'}/api/solana/airdrop`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('authToken')}`
+        },
+        body: JSON.stringify({
+          mintAddress: tokenAddress,
+          recipients: formattedRecipients
+        })
+      });
       
-      const mockSignature = 'solana_tx_signature_' + Date.now().toString(36);
-      setTxSignature(mockSignature);
-      setSuccess(`Successfully sent tokens to ${validRecipients.length} recipients!`);
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to send airdrop');
+      }
+      
+      const result = await response.json();
+      setTxSignature(result.signature);
+      setSuccess(`Successfully sent tokens to ${result.recipientCount} recipients!`);
+      
+      // Clear form
+      setRecipients([{ address: '', amount: '', valid: false }]);
     } catch (error) {
       console.error('Error sending airdrop:', error);
       setError((error as Error).message || 'Failed to send airdrop');
@@ -286,7 +305,7 @@ export const SolanaAirdrop: React.FC = () => {
                       <div>
                         <div className="text-sm text-gray-300">Your Balance</div>
                         <div className="text-white font-medium">
-                          {parseFloat(tokenInfo.balance).toLocaleString()} {tokenInfo.symbol}
+                          {tokenInfo ? parseFloat(tokenInfo.balance).toLocaleString() : '0'} {tokenInfo?.symbol || ''}
                         </div>
                       </div>
                     </div>
@@ -411,7 +430,7 @@ export const SolanaAirdrop: React.FC = () => {
                 <div className="flex justify-between">
                   <span className="text-gray-300">Total Amount</span>
                   <span className="text-white font-medium">
-                    {parseFloat(totalAmount).toLocaleString()} {tokenInfo?.symbol || ''}
+                    {parseFloat(totalAmount || '0').toLocaleString()} {tokenInfo?.symbol || ''}
                   </span>
                 </div>
                 <div className="flex justify-between">

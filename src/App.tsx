@@ -41,6 +41,8 @@ function App() {
   const [currentStep, setCurrentStep] = useState<'landing' | 'builder' | 'vesting' | 'review' | 'success' | 'presale' | 'sales' | 'tokens' | 'sale' | 'explore' | 'manage' | 'liquidity-lock' | 'airdrop' | 'solana' | 'solana-manage' | 'solana-airdrop'>('landing');
   const [tokenConfig, setTokenConfig] = useState<TokenConfig | null>(null);
   const [deploymentResult, setDeploymentResult] = useState<DeploymentResult | null>(null);
+  const [solanaTokenConfig, setSolanaTokenConfig] = useState(null);
+  const [solanaDeploymentResult, setSolanaDeploymentResult] = useState(null);
 
   // Handle network switching when mode changes or wallet connects
   useEffect(() => {
@@ -110,6 +112,16 @@ function App() {
     setCurrentStep('landing');
     setTokenConfig(null);
     setDeploymentResult(null);
+  };
+
+  const handleSolanaTokenConfigComplete = (config) => {
+    setSolanaTokenConfig(config);
+    setCurrentStep('solana-deployment');
+  };
+
+  const handleSolanaTokenDeploy = (result) => {
+    setSolanaDeploymentResult(result);
+    setCurrentStep('solana-success');
   };
 
   const goBack = () => {
@@ -275,7 +287,31 @@ function App() {
     case 'solana':
       return (
         <>
-          <SolanaIntegration />
+          <SolanaIntegration 
+            onCreateToken={handleSolanaTokenConfigComplete}
+            onBack={handleStartNew}
+          />
+        </>
+      );
+      
+    case 'solana-deployment':
+      return (
+        <>
+          <SolanaTokenDeployment
+            config={solanaTokenConfig}
+            onBack={() => setCurrentStep('solana')}
+            onDeploy={handleSolanaTokenDeploy}
+          />
+        </>
+      );
+      
+    case 'solana-success':
+      return (
+        <>
+          <SolanaTokenSuccess
+            result={solanaDeploymentResult}
+            onStartNew={() => setCurrentStep('solana')}
+          />
         </>
       );
       
@@ -289,7 +325,9 @@ function App() {
     case 'solana-airdrop':
       return (
         <>
-          <SolanaAirdrop />
+          <SolanaAirdrop 
+            onBack={() => setCurrentStep('solana')}
+          />
         </>
       );
     
@@ -304,7 +342,12 @@ function App() {
     
     default:
       // Check if this is a valid route
-      const validRoutes = ['landing', 'builder', 'vesting', 'review', 'success', 'presale', 'sales', 'tokens', 'sale', 'explore', 'manage', 'liquidity-lock', 'airdrop', 'solana', 'solana-manage', 'solana-airdrop'];
+      const validRoutes = [
+        'landing', 'builder', 'vesting', 'review', 'success', 
+        'presale', 'sales', 'tokens', 'sale', 'explore', 'manage', 
+        'liquidity-lock', 'airdrop', 'solana', 'solana-manage', 
+        'solana-airdrop', 'solana-deployment', 'solana-success'
+      ];
       if (!validRoutes.includes(currentStep)) {
         return (
           <>

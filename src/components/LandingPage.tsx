@@ -127,9 +127,10 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               {onSolana && (
                 <button
                   onClick={onSolana}
-                  className="text-yellow-300 hover:text-yellow-200 transition-colors"
+                  className="text-yellow-300 hover:text-yellow-200 transition-colors flex items-center space-x-1"
                 >
-                  Solana ☀️
+                  <span>Solana</span>
+                  <span className="text-lg">☀️</span>
                 </button>
               )}
             </nav>
@@ -257,17 +258,17 @@ export const LandingPage: React.FC<LandingPageProps> = ({
           <div className="mb-8">
             <h4 className="text-xl font-semibold text-white text-center mb-4">Solana Networks</h4>
             <div className="grid grid-cols-3 gap-4 max-w-3xl mx-auto">
-              <div className="p-3 rounded-lg border border-yellow-500/30 bg-yellow-500/10 text-center">
+              <div className="p-3 rounded-lg border border-yellow-500/30 bg-yellow-500/10 text-center relative">
                 <div className="text-2xl mb-1">☀️</div>
                 <div className="text-white font-medium">Solana Mainnet</div>
                 <div className="text-xs text-yellow-300">Production</div>
               </div>
-              <div className="p-3 rounded-lg border border-yellow-500/30 bg-yellow-500/10 text-center">
+              <div className="p-3 rounded-lg border border-yellow-500/30 bg-yellow-500/10 text-center relative">
                 <div className="text-2xl mb-1">🌤️</div>
                 <div className="text-white font-medium">Solana Devnet</div>
                 <div className="text-xs text-yellow-300">Development</div>
               </div>
-              <div className="p-3 rounded-lg border border-yellow-500/30 bg-yellow-500/10 text-center">
+              <div className="p-3 rounded-lg border border-yellow-500/30 bg-yellow-500/10 text-center relative">
                 <div className="text-2xl mb-1">🌥️</div>
                 <div className="text-white font-medium">Solana Testnet</div>
                 <div className="text-xs text-yellow-300">Testing</div>

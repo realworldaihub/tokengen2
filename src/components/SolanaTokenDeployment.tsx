@@ -42,29 +42,38 @@ export const SolanaTokenDeployment: React.FC<SolanaTokenDeploymentProps> = ({
   const handleDeploy = async () => {
     if (!agreed || !publicKey || !hasEnoughBalance()) return;
     
-    setIsDeploying(true);
+    setIsDeploying(true); 
     setError(null);
     
     try {
-      // In a real implementation, you would:
-      // 1. Get the user's private key securely (or use a signing API)
-      // 2. Call solanaService.createToken with the config and private key
-      // 3. Handle the result
+      // Call API to create token
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3001'}/api/solana/token`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('authToken')}`
+        },
+        body: JSON.stringify(config)
+      });
       
-      // For this demo, we'll simulate a successful deployment
-      const mockResult: SolanaTokenDeploymentResult = {
-        mint: 'So1ana111111111111111111111111111111111111111',
-        tokenAccount: 'TokenAccount111111111111111111111111111111',
-        transactionSignature: 'signature111111111111111111111111111111111111111111',
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to deploy token');
+      }
+      
+      const result = await response.json();
+      
+      // Convert API response to SolanaTokenDeploymentResult
+      const deploymentResult: SolanaTokenDeploymentResult = {
+        mint: result.mint,
+        tokenAccount: result.tokenAccount,
+        transactionSignature: result.transactionSignature,
         network: config.network,
-        explorerUrl: `${config.network.explorerUrl}/address/So1ana111111111111111111111111111111111111111`,
-        metadataAddress: config.metadata.enabled ? 'metadata111111111111111111111111111111' : undefined
+        explorerUrl: result.explorerUrl,
+        metadataAddress: result.metadataAddress
       };
       
-      // Simulate network delay
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
-      onDeploy(mockResult);
+      onDeploy(deploymentResult);
     } catch (error) {
       console.error('Deployment failed:', error);
       setError((error as Error).message || 'Failed to deploy token');
@@ -140,9 +149,15 @@ export const SolanaTokenDeployment: React.FC<SolanaTokenDeploymentProps> = ({
                   
                   {config.metadata.externalUrl && (
                     <div>
-                      <label className="block text-sm font-medium text-gray-300 mb-1">External URL</label>
+                    <span className="text-green-400 font-medium flex items-center">
+                      <CheckCircle className="w-4 h-4 mr-1" />
+                      Ready to deploy
+                    </span>
                       <div className="text-white">{config.metadata.externalUrl}</div>
-                    </div>
+                    <span className="text-red-400 font-medium flex items-center">
+                      <AlertTriangle className="w-4 h-4 mr-1" />
+                      Insufficient balance
+                    </span>
                   )}
                 </div>
               </div>

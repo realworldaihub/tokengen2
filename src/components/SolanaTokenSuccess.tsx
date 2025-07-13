@@ -51,26 +51,31 @@ export const SolanaTokenSuccess: React.FC<SolanaTokenSuccessProps> = ({ result, 
   const addTokenToPhantom = async () => {
     try {
       if (typeof window.solana === 'undefined') {
-        alert('Phantom wallet is not installed');
+        alert('Phantom wallet is not installed. Please install Phantom to add this token.');
         return;
       }
       
-      // Request to add token to Phantom
-      await window.solana.request({
-        method: 'wallet_watchAsset',
-        params: {
-          type: 'spl-token',
-          options: {
-            address: result.mint,
-            symbol: tokenMetadata?.symbol || 'TOKEN',
-            decimals: 9,
-            image: tokenMetadata?.logoUrl || ''
+      try {
+        // Request to add token to Phantom
+        await window.solana.request({
+          method: 'wallet_watchAsset',
+          params: {
+            type: 'spl-token',
+            options: {
+              address: result.mint,
+              symbol: tokenMetadata?.symbol || 'TOKEN',
+              decimals: 9,
+              image: tokenMetadata?.logoUrl || ''
+            }
           }
-        }
-      });
+        });
+      } catch (error) {
+        console.error('Error in wallet request:', error);
+        alert('Failed to add token to wallet. The wallet may have rejected the request.');
+      }
     } catch (error) {
       console.error('Error adding token to Phantom:', error);
-      alert('Failed to add token to wallet');
+      alert('Failed to add token to wallet. Please try again or add it manually.');
     }
   };
 
