@@ -1,6 +1,6 @@
 # TokenForge - Create and Deploy ERC-20 Tokens
 
-TokenForge is a comprehensive platform for creating and deploying professional-grade ERC-20/BEP-20 tokens across multiple blockchains using Hardhat. With an intuitive interface, secure backend deployment, and advanced features, TokenForge makes token creation accessible to everyone while maintaining enterprise-grade security and reliability.
+TokenForge is a comprehensive platform for creating and deploying professional-grade ERC-20/BEP-20 tokens across multiple blockchains using Hardhat, as well as SPL tokens on Solana. With an intuitive interface, secure backend deployment, and advanced features, TokenForge makes token creation accessible to everyone while maintaining enterprise-grade security and reliability.
 
 ## 🚀 New Multi-Chain Support
 
@@ -18,6 +18,28 @@ TokenForge now supports **25+ EVM-compatible blockchains** including:
 - **Network Selector**: Intuitive dropdown for selecting deployment networks
 - **Visual Indicators**: Clear feedback on current network and mode status
 
+## 🚀 New Solana Blockchain Support
+
+TokenForge now supports the Solana blockchain with comprehensive integration:
+
+### Solana Network Support
+- **Multiple Environments**: Full support for Solana Mainnet, Devnet, and Testnet
+- **RPC Configuration**: Optimized RPC endpoints for all Solana networks
+- **Explorer Integration**: Direct links to Solana Explorer for all transactions
+
+### Solana Wallet Integration
+- **Multiple Wallet Support**: Integration with Phantom, Solflare, Backpack, and more
+- **Wallet Adapter**: Seamless connection using @solana/wallet-adapter
+- **Network Switching**: Easy switching between Solana networks
+- **Balance Display**: Real-time SOL balance checking
+
+### SPL Token Features
+- **Token Creation**: Create SPL tokens with custom parameters
+- **Metadata Support**: Add on-chain metadata to your tokens
+- **Token Management**: Send, receive, and manage your SPL tokens
+- **Airdrop Tool**: Distribute tokens to multiple addresses efficiently
+- **Devnet Airdrop**: Request SOL airdrops on Devnet for testing
+
 ## 🚀 New Hardhat Integration
 
 TokenForge now uses **Hardhat** for all contract deployments, providing:
@@ -29,7 +51,7 @@ TokenForge now uses **Hardhat** for all contract deployments, providing:
 - **Deployment Tracking**: Complete deployment history and status monitoring
 - **Backend Security**: Secure API-based deployment with authentication
 - **Real Blockchain Integration**: Live data fetching from actual contracts
-- **ESR Token Integration**: Real ESR token balance checking and deduction
+- **ESR Token Integration**: Real ESR token balance checking and deduction for EVM chains
 - **Dynamic RPC Configuration**: Environment-based RPC endpoints for all networks
 
 ### Architecture Overview
@@ -37,9 +59,9 @@ TokenForge now uses **Hardhat** for all contract deployments, providing:
 ```
 Frontend (React + TypeScript)
     ↓ API Calls
-Backend (Node.js + Express)
+Backend (Node.js + Express + Solana Web3.js)
     ↓ Hardhat Scripts
-Blockchain Networks
+Blockchain Networks (EVM + Solana)
 ```
 
 The platform now operates with a secure backend service that handles all contract compilation and deployment using Hardhat, while the frontend provides the user interface and wallet integration.
@@ -47,8 +69,9 @@ The platform now operates with a secure backend service that handles all contrac
 ## 🔗 Real Blockchain Integration Features
 
 ### Multi-Chain Support
-- **25+ Blockchain Networks**: Support for all major EVM-compatible chains
+- **25+ Blockchain Networks**: Support for all major EVM-compatible chains and Solana
 - **MetaMask Integration**: Seamless network switching and addition
+- **Solana Wallet Integration**: Support for Phantom, Solflare, and other Solana wallets
 - **Network Mode Toggle**: Easy switching between mainnet and testnet modes
 - **Chain Detection**: Automatic detection of connected chain
 - **Network Visualization**: Clear visual indicators for network status
@@ -831,6 +854,28 @@ REPORT_GAS=false
 
 ## New Updates
 
+We've made significant improvements to the TokenForge platform with comprehensive Solana blockchain support:
+
+### Solana Blockchain Integration
+
+- **Full Solana Support**: Complete integration with Solana Mainnet, Devnet, and Testnet
+- **Wallet Adapter**: Seamless connection with Phantom, Solflare, and other Solana wallets
+- **SPL Token Creation**: Create and deploy SPL tokens with custom parameters
+- **Token Metadata**: Add on-chain metadata to your SPL tokens
+- **Airdrop Tool**: Send SPL tokens to multiple addresses in a single transaction
+- **SOL Airdrop**: Request SOL airdrops on Devnet for testing purposes
+- **Token Management**: View and manage your SPL tokens with an intuitive interface
+- **Network Switching**: Easily switch between Solana Mainnet, Devnet, and Testnet
+
+### Custom Token Metadata System
+
+- **Comprehensive Metadata**: Add logos, descriptions, links, and category tags to your tokens
+- **IPFS Integration**: Store token logos securely on IPFS
+- **Owner-Only Editing**: Only token owners can edit metadata
+- **Metadata API**: Access token metadata through a dedicated API endpoint
+- **Visual Display**: Show token metadata throughout the platform
+- **Category Tags**: Filter and search tokens by category
+
 We've made significant improvements to the TokenForge platform with comprehensive multi-chain support:
 
 ### Multi-Chain Support
@@ -1170,7 +1215,7 @@ User Input → Frontend Validation → API Authentication → Hardhat Compilatio
 - **Automatic Verification**: All contracts verified on blockchain explorers
 - **ESR Token Integration**: Secure ESR token deduction for deployments
 - **Real-time Monitoring**: Live blockchain data integration
-- **Dynamic Configuration**: Environment-based network and RPC configuration
+- **Dynamic Configuration**: Environment-based network and RPC configuration for both EVM and Solana
 - **Deployment Tracking**: Complete audit trail of all deployments
 - **Token Management**: Comprehensive post-deployment management interface
   - Access control based on contract ownership
@@ -1181,6 +1226,8 @@ User Input → Frontend Validation → API Authentication → Hardhat Compilatio
 ### Supported Networks
 
 All deployments are handled through Hardhat with the following 25+ networks configured:
+
+#### EVM Networks
 
 #### Mainnets
 - Ethereum (ETH) - Chain ID: 1
@@ -1212,6 +1259,11 @@ All deployments are handled through Hardhat with the following 25+ networks conf
 - Cronos Testnet (CRO) - Chain ID: 338
 - Bitrock Testnet (BROCK) - Chain ID: 7771
 
+#### Solana Networks
+- Solana Mainnet
+- Solana Devnet
+- Solana Testnet
+
 ## ESR Token System
 
 ### Requirements
@@ -1221,7 +1273,7 @@ All deployments are handled through Hardhat with the following 25+ networks conf
 
 ### Integration
 - **Real Balance Checking**: Live ESR token balance from your wallet
-- **Automatic Deduction**: ESR tokens automatically transferred during deployment
+- **Automatic Deduction**: ESR tokens automatically transferred during EVM deployment
 - **Transaction Confirmation**: Full transaction tracking and confirmation
 
 ## API Documentation
@@ -1351,6 +1403,7 @@ Authorization: Bearer <jwt_token>
 ```
 /
 ├── contracts/           # Solidity contract templates
+├── solana/              # Solana program templates
 ├── scripts/             # Hardhat deployment scripts
 ├── server/              # Backend API service
 │   ├── api/             # API route handlers
@@ -1372,7 +1425,7 @@ npm run dev:all          # Start both frontend and backend
 # Hardhat
 npm run compile          # Compile contracts
 npm run test             # Run contract tests
-npm run deploy:local     # Deploy to local network
+npm run deploy:local     # Deploy to local EVM network
 
 # Production
 npm run build            # Build frontend for production
@@ -1381,9 +1434,9 @@ npm run start            # Start production server
 
 ### Adding New Networks
 
-1. Add network configuration to `hardhat.config.js`
+1. Add EVM network configuration to `hardhat.config.js` or Solana network to `src/config/solanaNetworks.ts`
 2. Add RPC URL to `.env` file
-3. Add network to `src/data/networks.ts`
+3. Add network to `src/data/networks.ts` or `src/config/solanaNetworks.ts`
 4. Add API key for verification (if needed)
 
 ### Adding New Contract Types
@@ -1395,7 +1448,7 @@ npm run start            # Start production server
 
 ## Troubleshooting
 
-### Common Issues
+### Common EVM Issues
 
 1. **Transaction Failing**: 
    - Ensure you have enough native tokens for gas
@@ -1429,6 +1482,28 @@ npm run start            # Start production server
    - Clear browser cache
    - Try a different browser
    - Check browser console for error messages
+
+### Common Solana Issues
+
+1. **Transaction Failing**:
+   - Ensure you have enough SOL for transaction fees
+   - Verify your wallet is connected to the correct network
+   - Try increasing priority fee
+
+2. **Wallet Connection Issues**:
+   - Ensure Phantom or Solflare is installed
+   - Try refreshing the page and reconnecting
+   - Check that you're signing the correct message
+
+3. **Token Creation Failures**:
+   - Check network status and RPC endpoint
+   - Ensure you have sufficient SOL for the transaction
+   - Verify token parameters are valid
+
+4. **Airdrop Failures**:
+   - Ensure recipient addresses are valid Solana addresses
+   - Check that you have sufficient token balance
+   - Reduce batch size if transaction is too large
 
 ## License
 
