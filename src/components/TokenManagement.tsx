@@ -18,7 +18,6 @@ import {
   Calendar,
   BarChart3
 } from 'lucide-react';
-  import { useParams, useNavigate } from 'react-router-dom';
 import { useWallet } from '../hooks/useWallet';
 import { useTokenManagement } from '../hooks/useTokenManagement';
 import { WalletConnection } from './WalletConnection';
