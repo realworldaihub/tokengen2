@@ -18,6 +18,7 @@ import { ErrorBoundary } from './components/ErrorBoundary';
 import { useNetworkMode } from './hooks/useNetworkMode';
 import { useWallet } from './hooks/useWallet';
 import { NetworkModeIndicator } from './components/NetworkModeIndicator';
+import { ModeBanner } from './components/ModeBanner';
 import { 
   getMainnetChainIds, 
   getTestnetChainIds, 
@@ -33,7 +34,7 @@ declare global {
 
 function App() {
   const { isTestnetMode } = useNetworkMode();
-  const { isConnected, chainId, switchToNetwork } = useWallet();
+  const { isConnected, chainId, switchToNetwork, disconnectWallet } = useWallet();
   const [currentStep, setCurrentStep] = useState<'landing' | 'builder' | 'vesting' | 'review' | 'success' | 'presale' | 'sales' | 'tokens' | 'sale' | 'explore' | 'manage' | 'liquidity-lock' | 'airdrop'>('landing');
   const [tokenConfig, setTokenConfig] = useState<TokenConfig | null>(null);
   const [deploymentResult, setDeploymentResult] = useState<DeploymentResult | null>(null);
@@ -41,21 +42,19 @@ function App() {
   // Handle network switching when mode changes or wallet connects
   useEffect(() => {
     if (isConnected && chainId) {
-      const isCorrectNetworkType = isTestnetMode 
-        ? isTestnetChain(chainId) 
-        : isMainnetChain(chainId);
+      const isCorrectNetworkType = isTestnetMode ? isTestnetChain(chainId) : isMainnetChain(chainId);
       
       // If network doesn't match mode, try to switch
       if (!isCorrectNetworkType) {
         const targetChainIds = isTestnetMode ? getTestnetChainIds() : getMainnetChainIds();
         if (targetChainIds.length > 0) {
-          switchToNetwork(targetChainIds[0]).catch(error => {
+          switchToNetwork(targetChainIds[0]).catch((error) => {
             console.error('Failed to switch network:', error);
           });
         }
       }
     }
-  }, [isConnected, chainId, isTestnetMode, switchToNetwork]);
+  }, [isConnected, chainId, isTestnetMode]);
 
   const handleGetStarted = () => {
     setCurrentStep('builder');
@@ -136,6 +135,7 @@ function App() {
           onAirdrop={handleAirdrop}
         />
         <NetworkModeIndicator />
+        <ModeBanner />
         </>
       );
     
@@ -148,6 +148,7 @@ function App() {
           initialConfig={tokenConfig || undefined}
         />
         <NetworkModeIndicator />
+        <ModeBanner />
         </>
       );
     
@@ -160,6 +161,7 @@ function App() {
           onNext={handleVestingComplete}
         />
         <NetworkModeIndicator />
+        <ModeBanner />
         </>
       );
     
@@ -172,6 +174,7 @@ function App() {
           onDeploy={handleDeploy}
         />
         <NetworkModeIndicator />
+        <ModeBanner />
         </>
       );
     
@@ -183,6 +186,7 @@ function App() {
           onStartNew={handleStartNew}
         />
         <NetworkModeIndicator />
+        <ModeBanner />
         </>
       );
     
@@ -193,6 +197,7 @@ function App() {
           onBack={() => setCurrentStep('landing')}
         />
         <NetworkModeIndicator />
+        <ModeBanner />
         </>
       );
     
@@ -201,6 +206,7 @@ function App() {
         <>
           <MySales />
           <NetworkModeIndicator />
+          <ModeBanner />
         </>
       );
     
@@ -209,6 +215,7 @@ function App() {
         <>
           <DeployedTokens />
           <NetworkModeIndicator />
+          <ModeBanner />
         </>
       );
     
@@ -217,6 +224,7 @@ function App() {
         <>
           <SaleRouter />
           <NetworkModeIndicator />
+          <ModeBanner />
         </>
       );
     
@@ -225,6 +233,7 @@ function App() {
         <>
           <SaleExplorer />
           <NetworkModeIndicator />
+          <ModeBanner />
         </>
       );
     
@@ -233,6 +242,7 @@ function App() {
         <>
           <TokenManagement />
           <NetworkModeIndicator />
+          <ModeBanner />
         </>
       );
     
@@ -241,6 +251,7 @@ function App() {
         <>
           <LiquidityLock />
           <NetworkModeIndicator />
+          <ModeBanner />
         </>
       );
       
@@ -249,6 +260,7 @@ function App() {
         <>
           <Airdrop />
           <NetworkModeIndicator />
+          <ModeBanner />
         </>
       );
     
@@ -257,6 +269,7 @@ function App() {
         <>
           <NotFound />
           <NetworkModeIndicator />
+          <ModeBanner />
         </>
       );
     
@@ -268,6 +281,7 @@ function App() {
           <>
             <NotFound />
             <NetworkModeIndicator />
+            <ModeBanner />
           </>
         );
       } else {
@@ -283,6 +297,7 @@ function App() {
             onAirdrop={handleAirdrop}
           />
           <NetworkModeIndicator />
+          <ModeBanner />
           </>
         );
       }

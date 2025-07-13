@@ -1,6 +1,7 @@
 import React from 'react';
 import { Moon, Sun, Globe, Zap } from 'lucide-react';
 import { useNetworkMode } from '../hooks/useNetworkMode';
+import { useWallet } from '../hooks/useWallet';
 
 interface NetworkModeToggleProps {
   className?: string;
@@ -9,6 +10,11 @@ interface NetworkModeToggleProps {
 
 export const NetworkModeToggle: React.FC<NetworkModeToggleProps> = ({ className = '', showLabel = false }) => {
   const { isTestnetMode, toggleMode } = useNetworkMode();
+  const { isConnected } = useWallet();
+
+  const handleToggle = async () => {
+    await toggleMode();
+  };
 
   return (
     <div className="flex items-center space-x-2">
@@ -18,7 +24,7 @@ export const NetworkModeToggle: React.FC<NetworkModeToggleProps> = ({ className 
         </span>
       )}
       <button
-        onClick={toggleMode}
+        onClick={handleToggle}
         className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
           isTestnetMode ? 'bg-green-500' : 'bg-blue-600'
         } ${className}`}
