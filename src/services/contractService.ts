@@ -465,10 +465,30 @@ export class ContractService {
 
   async deductESRTokens(amount: number = 100): Promise<boolean> {
     try {
+      // Get the current wallet address
+      const address = await web3Service.getSigner()?.getAddress();
+      if (!address) {
+        throw new AppError('Wallet not connected', ErrorType.WALLET);
+      }
+      
+      // First, check if we have enough ESR tokens
+      const balance = await this.checkESRBalance(address);
+      if (balance < amount) {
+        throw new AppError(`Insufficient ESR tokens. Required: ${amount}, Available: ${balance.toFixed(2)}`, ErrorType.VALIDATION);
+      }
+      
+      // Use web3Service to transfer ESR tokens to platform wallet
+      const txHash = await web3Service.transferToken(
+        import.meta.env.VITE_ESR_TOKEN_ADDRESS || '0x742d35Cc6634C0532925a3b8D4C9db96590c6C8C',
+        import.meta.env.VITE_PLATFORM_WALLET || '0x742d35Cc6634C0532925a3b8D4C9db96590c6C8C',
+        amount
+      );
+      
+      // Notify backend about the transaction
       const response = await fetch(`${this.apiUrl}/api/auth/esr/deduct`, {
         method: 'POST',
         headers: this.getAuthHeaders(),
-        body: JSON.stringify({ amount }),
+        body: JSON.stringify({ amount, txHash }),
       });
 
       if (!response.ok) {

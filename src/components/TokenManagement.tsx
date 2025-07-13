@@ -18,6 +18,7 @@ import {
   Calendar,
   BarChart3
 } from 'lucide-react';
+  import { useParams, useNavigate } from 'react-router-dom';
 import { useWallet } from '../hooks/useWallet';
 import { useTokenManagement } from '../hooks/useTokenManagement';
 import { WalletConnection } from './WalletConnection';
@@ -29,8 +30,9 @@ import { VestingManagementPanel } from './tokenManagement/VestingManagementPanel
 import { VerificationPanel } from './tokenManagement/VerificationPanel';
 
 export const TokenManagement: React.FC = () => {
-  const { tokenAddress } = useParams<{ tokenAddress: string }>();
-  const navigate = useNavigate();
+  // Get token address from URL
+  const tokenAddress = window.location.pathname.split('/manage/')[1];
+  const navigate = (path: string) => { window.location.href = path; };
   const { isConnected, address } = useWallet();
   const [copied, setCopied] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<string>('overview');

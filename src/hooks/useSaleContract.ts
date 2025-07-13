@@ -165,11 +165,47 @@ export const useSaleContract = (contractAddress: string): SaleContractHook => {
       // Create contract instance
       const contract = new ethers.Contract(contractAddress, PresaleContractABI, signer);
       
-      // Convert amount to wei
-      const amountWei = ethers.parseEther(amount);
+      // Check if this is a V2 contract with referral support
+      let isV2 = false;
+      try {
+        // Try to access a V2-specific function
+        await contract.autoListingInfo();
+        isV2 = true;
+      } catch (error) {
+        // Not a V2 contract, continue with V1 logic
+      }
       
-      // Call buyTokens function
-      const tx = await contract.buyTokens({ value: amountWei });
+      let tx;
+      if (isV2) {
+        // For V2 contracts, we need to approve the base token first
+        // Get the base token address from the contract
+        const saleInfo = await contract.saleInfo();
+        const baseToken = saleInfo.baseToken;
+        
+        // Create base token contract instance
+        const baseTokenContract = new ethers.Contract(
+          baseToken,
+          ['function approve(address,uint256) returns (bool)'],
+          signer
+        );
+        
+        // Convert amount to wei
+        const amountWei = ethers.parseEther(amount);
+        
+        // Approve the presale contract to spend base tokens
+        const approveTx = await baseTokenContract.approve(contractAddress, amountWei);
+        await approveTx.wait();
+        
+        // Call buyTokens function with referrer (null address for no referrer)
+        tx = await contract.buyTokens(ethers.ZeroAddress);
+      } else {
+        // For V1 contracts, send native tokens directly
+        // Convert amount to wei
+        const amountWei = ethers.parseEther(amount);
+        
+        // Call buyTokens function
+        tx = await contract.buyTokens({ value: amountWei });
+      }
       
       // Wait for transaction confirmation
       await tx.wait();

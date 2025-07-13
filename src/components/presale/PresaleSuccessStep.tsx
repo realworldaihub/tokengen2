@@ -19,6 +19,7 @@ export const PresaleSuccessStep: React.FC<PresaleSuccessStepProps> = ({ result, 
   const shareContract = async () => {
     if (navigator.share) {
       try {
+        // Use the Web Share API if available
         await navigator.share({
           title: 'Token Sale Deployed',
           text: `Check out my token sale: ${result.contractAddress}`,
@@ -26,6 +27,8 @@ export const PresaleSuccessStep: React.FC<PresaleSuccessStepProps> = ({ result, 
         });
       } catch (err) {
         console.log('Error sharing:', err);
+        // Fallback to clipboard if sharing fails
+        copyToClipboard(result.salePageUrl, 'share');
       }
     } else {
       copyToClipboard(result.salePageUrl, 'share');

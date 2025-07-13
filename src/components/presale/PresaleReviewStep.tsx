@@ -8,6 +8,9 @@ import { contractService } from '../../services/contractService';
 import { useNetworkMode } from '../../hooks/useNetworkMode';
 import { useWallet } from '../../hooks/useWallet';
 import { web3Service } from '../../services/web3Service';
+  import { useWallet } from '../../hooks/useWallet';
+  import { useEffect } from 'react';
+  import { networks } from '../../data/networks';
 
 interface PresaleReviewStepProps {
   config: PresaleConfig;

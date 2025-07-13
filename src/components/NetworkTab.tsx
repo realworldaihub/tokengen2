@@ -5,6 +5,7 @@ import { mainnets, testnets } from '../data/networks';
 import { NetworkSelector } from './NetworkSelector';
 import { web3Service } from '../services/web3Service';
 import { useNetworkMode } from '../hooks/useNetworkMode';
+  import { ExternalLink } from 'lucide-react';
 
 interface NetworkTabProps {
   selectedNetwork: Network;

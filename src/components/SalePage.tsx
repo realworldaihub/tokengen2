@@ -146,7 +146,17 @@ export const SalePage: React.FC<SalePageProps> = ({ contractAddress }) => {
     setIsEmergencyWithdrawing(true);
     
     try {
-      await saleContract.emergencyWithdraw();
+      // Get signer
+      const signer = web3Service.getSigner();
+      if (!signer) throw new Error('Signer not available');
+      
+      // Create contract instance
+      const contract = new ethers.Contract(contractAddress, PresaleContractABI, signer);
+      
+      // Call emergencyWithdraw function
+      const tx = await contract.emergencyWithdraw();
+      await tx.wait();
+      
       await loadSaleData();
       await loadUserInfo(address!);
       setShowEmergencyModal(false);

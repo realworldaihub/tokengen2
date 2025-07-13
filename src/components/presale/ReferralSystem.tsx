@@ -46,7 +46,9 @@ export const ReferralSystem: React.FC<ReferralSystemProps> = ({
     if (isConnected && address) {
       // Generate referral link
       const baseUrl = window.location.origin;
-      setReferralLink(`${baseUrl}/sale/${presaleAddress}?ref=${address}`);
+      // Make sure the referral link is properly formatted
+      const cleanPresaleAddress = presaleAddress.replace(/[^a-fA-F0-9x]/g, '');
+      setReferralLink(`${baseUrl}/sale/${cleanPresaleAddress}?ref=${address}`);
       
       // Load referral stats
       loadReferralStats();

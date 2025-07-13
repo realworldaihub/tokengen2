@@ -51,9 +51,9 @@ export const DeploymentSuccess: React.FC<DeploymentSuccessProps> = ({ result, on
           type: 'ERC20',
           options: {
             address: result.contractAddress,
-            symbol: result.tokenSymbol || 'TOKEN', // Use token symbol if available
-            decimals: result.tokenDecimals || 18,   // Use token decimals if available
-            image: 'https://example.com/token-logo.png' // Optional token logo
+            symbol: result.symbol || 'TOKEN', // Use token symbol if available
+            decimals: result.decimals || 18,   // Use token decimals if available
+            image: '' // Optional token logo
           }
         }
       });

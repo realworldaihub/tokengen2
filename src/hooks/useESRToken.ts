@@ -172,11 +172,12 @@ export const useESRToken = (): ESRTokenHook => {
         
         // Notify backend about the transaction
         try {
-          const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3001'}/api/auth/esr/deduct`, {
+          const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+          const response = await fetch(`${apiUrl}/api/auth/esr/deduct`, {
             method: 'POST',
             headers: { 
               'Content-Type': 'application/json',
-              'Authorization': `Bearer ${localStorage.getItem('authToken')}`
+              'Authorization': `Bearer ${localStorage.getItem('authToken') || ''}`
             },
             body: JSON.stringify({ amount, txHash })
           });

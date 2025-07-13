@@ -175,6 +175,51 @@ export class Web3Service {
     }
   }
 
+  async transferToken(tokenAddress: string, recipient: string, amount: number): Promise<string> {
+    if (!this.signer) throw new AppError('Signer not available', ErrorType.WALLET);
+    
+    try {
+      // Create token contract instance
+      const tokenContract = new ethers.Contract(
+        tokenAddress,
+        [
+          'function transfer(address to, uint256 amount) returns (bool)',
+          'function decimals() view returns (uint8)'
+        ],
+        this.signer
+      );
+      
+      // Get token decimals
+      const decimals = await tokenContract.decimals();
+      
+      // Convert amount to wei
+      const amountWei = ethers.parseUnits(amount.toString(), decimals);
+      
+      // Send transaction
+      const tx = await tokenContract.transfer(recipient, amountWei);
+      
+      // Wait for transaction confirmation
+      const receipt = await tx.wait();
+      
+      if (receipt.status !== 1) {
+        throw new AppError('Token transfer failed', ErrorType.CONTRACT);
+      }
+      
+      return tx.hash;
+    } catch (error) {
+      console.error('Error transferring tokens:', error);
+      
+      // Handle specific error cases
+      if ((error as any).code === 'ACTION_REJECTED') {
+        throw new AppError('Token transfer rejected by user', ErrorType.WALLET, error);
+      } else if ((error as any).code === 'INSUFFICIENT_FUNDS') {
+        throw new AppError('Insufficient token balance for transfer', ErrorType.WALLET, error);
+      } else {
+        throw new AppError('Token transfer failed', ErrorType.CONTRACT, error);
+      }
+    }
+  }
+
   async switchNetwork(network: Network): Promise<void> {
     if (!window.ethereum) throw new AppError('MetaMask not found', ErrorType.WALLET);
     
@@ -462,51 +507,26 @@ export class Web3Service {
   private getTokenPriceEstimate(symbol: string): number {
     // These would ideally come from a price oracle
     // Implement real price feed integration
-    return new Promise<number>(async (resolve) => {
-      try {
-        // Try to get price from a reliable API
-        const response = await fetch(`https://api.coingecko.com/api/v3/simple/price?ids=${symbolToId(symbol)}&vs_currencies=usd`);
-        const data = await response.json();
-        const price = data[symbolToId(symbol)]?.usd;
-        if (price) {
-          return resolve(price);
-        }
-        // Fallback to static prices if API fails
-        const fallbackPrices: Record<string, number> = {
-          'ETH': 3500,
-          'BNB': 550,
-          'MATIC': 1.20,
-          'FTM': 0.65,
-          'AVAX': 35,
-          'ESR': 0.50
-        };
-        resolve(fallbackPrices[symbol] || 0);
-      } catch (error) {
-        console.error('Error fetching token price:', error);
-        // Fallback prices if API call fails
-        const fallbackPrices: Record<string, number> = {
-          'ETH': 3500,
-          'BNB': 550,
-          'MATIC': 1.20,
-          'FTM': 0.65,
-          'AVAX': 35,
-          'ESR': 0.50
-        };
-        resolve(fallbackPrices[symbol] || 0);
-      }
-    });
-  }
-  
-  private symbolToId(symbol: string): string {
-    const mapping: Record<string, string> = {
-      'ETH': 'ethereum',
-      'BNB': 'binancecoin',
-      'MATIC': 'matic-network',
-      'FTM': 'fantom',
-      'AVAX': 'avalanche-2',
-      'ESR': 'estar'
+    // Fallback prices if API call fails
+    const fallbackPrices: Record<string, number> = {
+      'ETH': 3500,
+      'BNB': 550,
+      'MATIC': 1.20,
+      'FTM': 0.65,
+      'AVAX': 35,
+      'CRO': 0.15,
+      'CORE': 0.80,
+      'DOGE': 0.12,
+      'PLS': 0.0005,
+      'ZETA': 1.50,
+      'UNI': 5.00,
+      'BROCK': 0.10,
+      'ALV': 0.05,
+      'GPU': 0.20,
+      'ESR': 0.50
     };
-    return mapping[symbol] || symbol.toLowerCase();
+    
+    return fallbackPrices[symbol] || 0;
   }
   
   private getTimeEstimate(chainId: number): string {
@@ -527,6 +547,19 @@ export class Web3Service {
     
     return times[chainId] || '1-3 minutes';
   }
+
+  private symbolToId(symbol: string): string {
+    const mapping: Record<string, string> = {
+      'ETH': 'ethereum',
+      'BNB': 'binancecoin',
+      'MATIC': 'matic-network',
+      'FTM': 'fantom',
+      'AVAX': 'avalanche-2',
+      'ESR': 'estar'
+    };
+    return mapping[symbol] || symbol.toLowerCase();
+  }
+  
 
   async sendTransaction(transaction: any): Promise<string> {
     if (!this.signer) throw new AppError('Signer not available', ErrorType.WALLET);
