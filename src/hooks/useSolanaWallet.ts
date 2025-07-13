@@ -144,17 +144,17 @@ export const useSolanaWallet = () => {
       setError((error as Error).message || 'Failed to request airdrop');
       return null;
     }
-  }, [state.publicKey]);
+  }, [state.publicKey, state.network]);
 
   return {
     ...state,
     isConnecting,
-    error: error as string | null,
+    error,
     connectWallet,
     disconnectWallet,
     switchNetwork,
     requestAirdrop,
-    refreshBalance: state.publicKey ? () => fetchBalance(state.publicKey) : undefined,
+    refreshBalance: state.publicKey ? () => fetchBalance(state.publicKey!) : undefined,
     availableWallets: wallets,
     currentWallet: wallet
   };

@@ -6,7 +6,6 @@ import {
   SystemProgram,
   sendAndConfirmTransaction,
   LAMPORTS_PER_SOL,
-  clusterApiUrl,
   Commitment
 } from '@solana/web3.js';
 import {
@@ -62,6 +61,33 @@ class SolanaService {
   }
 
   // Request airdrop (only works on devnet/testnet)
+  async requestAirdrop(address: string, amount: number = 1): Promise<string> {
+    try {
+      const connection = this.getConnection();
+      
+      if (!this.network?.isTestnet) {
+        throw new AppError('Airdrops are only available on devnet and testnet', ErrorType.VALIDATION);
+      }
+      
+      let key;
+      try {
+        key = new PublicKey(address);
+      } catch (error) {
+        throw new AppError('Invalid wallet address', ErrorType.VALIDATION);
+      }
+      
+      const signature = await connection.requestAirdrop(
+        key,
+        amount * LAMPORTS_PER_SOL
+      );
+      
+      await connection.confirmTransaction(signature);
+      return signature;
+    } catch (error) {
+      console.error('Error requesting airdrop:', error);
+      throw new AppError('Failed to request airdrop', ErrorType.NETWORK, error);
+    }
+  }
 
   // Create a new SPL token
   async createToken(
@@ -393,35 +419,6 @@ class SolanaService {
     } catch (error) {
       console.error('Error getting token balance:', error);
       throw new AppError('Failed to get token balance', ErrorType.NETWORK, error);
-    }
-  }
-
-  // Request airdrop (devnet/testnet only)
-  async requestAirdrop(address: string, amount: number = 1): Promise<string> {
-    try {
-      const connection = this.getConnection();
-      
-      if (!this.network?.isTestnet) {
-        throw new AppError('Airdrops are only available on devnet and testnet', ErrorType.VALIDATION);
-      }
-      
-      let key;
-      try {
-        key = new PublicKey(address);
-      } catch (error) {
-        throw new AppError('Invalid wallet address', ErrorType.VALIDATION);
-      }
-      
-      const signature = await connection.requestAirdrop(
-        key,
-        amount * LAMPORTS_PER_SOL
-      );
-      
-      await connection.confirmTransaction(signature);
-      return signature;
-    } catch (error) {
-      console.error('Error requesting airdrop:', error);
-      throw new AppError('Failed to request airdrop', ErrorType.NETWORK, error);
     }
   }
 }

@@ -13,6 +13,8 @@ import { TokenManagement } from './components/TokenManagement';
 import { SolanaIntegration } from './components/SolanaIntegration';
 import { SolanaTokenManagement } from './components/SolanaTokenManagement';
 import { SolanaAirdrop } from './components/SolanaAirdrop';
+import { SolanaTokenDeployment } from './components/SolanaTokenDeployment';
+import { SolanaTokenSuccess } from './components/SolanaTokenSuccess';
 import { LiquidityLock } from './components/LiquidityLock';
 import { Airdrop } from './components/Airdrop';
 import { NotFound } from './components/NotFound';
@@ -41,8 +43,8 @@ function App() {
   const [currentStep, setCurrentStep] = useState<'landing' | 'builder' | 'vesting' | 'review' | 'success' | 'presale' | 'sales' | 'tokens' | 'sale' | 'explore' | 'manage' | 'liquidity-lock' | 'airdrop' | 'solana' | 'solana-manage' | 'solana-airdrop'>('landing');
   const [tokenConfig, setTokenConfig] = useState<TokenConfig | null>(null);
   const [deploymentResult, setDeploymentResult] = useState<DeploymentResult | null>(null);
-  const [solanaTokenConfig, setSolanaTokenConfig] = useState(null);
-  const [solanaDeploymentResult, setSolanaDeploymentResult] = useState(null);
+  const [solanaTokenConfig, setSolanaTokenConfig] = useState<any>(null);
+  const [solanaDeploymentResult, setSolanaDeploymentResult] = useState<any>(null);
 
   // Handle network switching when mode changes or wallet connects
   useEffect(() => {
@@ -297,7 +299,7 @@ function App() {
     case 'solana-deployment':
       return (
         <>
-          <SolanaTokenDeployment
+          <SolanaTokenDeployment 
             config={solanaTokenConfig}
             onBack={() => setCurrentStep('solana')}
             onDeploy={handleSolanaTokenDeploy}
@@ -308,7 +310,7 @@ function App() {
     case 'solana-success':
       return (
         <>
-          <SolanaTokenSuccess
+          <SolanaTokenSuccess 
             result={solanaDeploymentResult}
             onStartNew={() => setCurrentStep('solana')}
           />

@@ -166,7 +166,7 @@ export const SolanaIntegration: React.FC = () => {
                   >
                     {isAirdropping ? (
                       <>
-                        <Loader2 className="w-3 h-3 animate-spin" />
+                        <RefreshCw className="w-3 h-3 animate-spin" />
                         <span>Requesting...</span>
                       </>
                     ) : (

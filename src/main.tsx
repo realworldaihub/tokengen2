@@ -1,7 +1,7 @@
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import App from './App.tsx';
-import { SolanaWalletProvider } from './components/SolanaWalletProvider';
+import { SolanaWalletProvider } from './components/SolanaWalletProvider.tsx';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import './index.css';
 

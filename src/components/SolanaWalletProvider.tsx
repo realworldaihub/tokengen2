@@ -5,7 +5,7 @@ import { WalletModalProvider } from '@solana/wallet-adapter-react-ui';
 import {
   PhantomWalletAdapter,
   SolflareWalletAdapter,
-  BraveWalletAdapter,
+  BackpackWalletAdapter,
   CoinbaseWalletAdapter,
   SlopeWalletAdapter,
   TorusWalletAdapter,
@@ -33,7 +33,7 @@ export const SolanaWalletProvider: FC<SolanaWalletProviderProps> = ({ children }
     () => [
       new PhantomWalletAdapter(),
       new SolflareWalletAdapter(),
-      new BraveWalletAdapter(),
+      new BackpackWalletAdapter(),
       new CoinbaseWalletAdapter(),
       new SlopeWalletAdapter(),
       new TorusWalletAdapter(),
