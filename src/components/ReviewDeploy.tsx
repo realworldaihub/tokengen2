@@ -2,14 +2,17 @@ import React, { useState } from 'react';
 import { ArrowLeft, ArrowRight, CheckCircle, AlertTriangle, Zap, Clock, Shield, Globe } from 'lucide-react';
 import { TokenConfig, DeploymentResult } from '../types';
 import { RemixFallback } from './RemixFallback';
+import { TokenMetadataForm } from './TokenMetadataForm';
 import { NetworkMismatchModal } from './NetworkMismatchModal';
 import { contractService } from '../services/contractService'; 
 import { vestingCategories } from '../data/vestingCategories';
 import { web3Service } from '../services/web3Service';
 import { useNetworkMode } from '../hooks/useNetworkMode';
-  import { useWallet } from '../hooks/useWallet';
-  import { useEffect } from 'react';
-  import { networks } from '../data/networks';
+import { useWallet } from '../hooks/useWallet';
+import { useEffect } from 'react';
+import { networks } from '../data/networks';
+import { TokenMetadata } from '../types/tokenMetadata';
+import { metadataService } from '../services/metadataService';
 
 interface ReviewDeployProps {
   config: TokenConfig;
@@ -26,6 +29,8 @@ export const ReviewDeploy: React.FC<ReviewDeployProps> = ({ config, onBack, onDe
   const [deploymentFailed, setDeploymentFailed] = useState(false);
   const [deploymentError, setDeploymentError] = useState<string | null>(null);
   const [useFactory, setUseFactory] = useState(true);
+  const [showMetadataForm, setShowMetadataForm] = useState(false);
+  const [tokenMetadata, setTokenMetadata] = useState<TokenMetadata | null>(null);
   const [costEstimate, setCostEstimate] = useState({
     gasEstimate: '0',
     gasCost: '0.025',
@@ -71,6 +76,11 @@ export const ReviewDeploy: React.FC<ReviewDeployProps> = ({ config, onBack, onDe
     }
   }, [chainId, config.network.chainId]);
 
+  // Handle metadata save
+  const handleMetadataSave = (metadata: TokenMetadata) => {
+    setTokenMetadata(metadata);
+  };
+
   // Handle network switch
   const handleSwitchNetwork = async () => {
     try {
@@ -103,6 +113,16 @@ export const ReviewDeploy: React.FC<ReviewDeployProps> = ({ config, onBack, onDe
         ...config,
         useFactory
       });
+
+      // If we have metadata, link it to the deployed token
+      if (tokenMetadata) {
+        try {
+          await metadataService.linkTemporaryMetadata(result.contractAddress);
+        } catch (error) {
+          console.error('Failed to link metadata:', error);
+          // Continue even if metadata linking fails
+        }
+      }
       
       onDeploy(result);
     } catch (error) {
@@ -283,6 +303,52 @@ export const ReviewDeploy: React.FC<ReviewDeployProps> = ({ config, onBack, onDe
           </div>
 
           {/* Sidebar */}
+          <div className="bg-white/5 backdrop-blur-sm rounded-xl p-6 border border-white/10 mb-6">
+            <div className="flex items-center justify-between">
+              <h2 className="text-xl font-semibold text-white">Token Metadata</h2>
+              <button
+                onClick={() => setShowMetadataForm(!showMetadataForm)}
+                className="text-blue-400 hover:text-blue-300 text-sm font-medium"
+              >
+                {showMetadataForm ? 'Hide Form' : 'Add Metadata'}
+              </button>
+            </div>
+            
+            {showMetadataForm ? (
+              <div className="mt-4">
+                <TokenMetadataForm
+                  tokenAddress={config.network.id}
+                  tokenName={config.name}
+                  tokenSymbol={config.symbol}
+                  isOwner={true}
+                  isPreDeployment={true}
+                  onPreDeploymentSave={handleMetadataSave}
+                  showPreviews={true}
+                />
+              </div>
+            ) : (
+              <div className="mt-4">
+                <p className="text-gray-300">
+                  Add metadata to your token to make it more discoverable and provide information to users.
+                  You can add this now or after deployment.
+                </p>
+                {tokenMetadata && (
+                  <div className="mt-4 p-3 bg-green-500/20 border border-green-500/50 rounded-lg">
+                    <div className="flex items-start space-x-3">
+                      <CheckCircle className="w-5 h-5 text-green-400 mt-0.5" />
+                      <div>
+                        <h4 className="font-medium text-green-400 mb-1">Metadata Ready</h4>
+                        <p className="text-green-300 text-sm">
+                          Your token metadata will be linked to your token after deployment.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+
           <div className="space-y-6">
             {/* Deployment Summary */}
             <div className="bg-white/5 backdrop-blur-sm rounded-xl p-6 border border-white/10">

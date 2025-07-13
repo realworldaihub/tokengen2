@@ -11,10 +11,12 @@ import {
   Tag, 
   AlertTriangle, 
   CheckCircle, 
-  Loader2 
+  Loader2,
+  Coins
 } from 'lucide-react';
-import { TokenMetadata, TOKEN_CATEGORIES } from '../types/tokenMetadata';
+import { TokenMetadata, TOKEN_CATEGORIES, METADATA_PREVIEWS } from '../types/tokenMetadata';
 import { metadataService } from '../services/metadataService';
+import { MetadataPreviewCard } from './MetadataPreviewCard';
 
 interface TokenMetadataFormProps {
   tokenAddress: string;
@@ -23,6 +25,9 @@ interface TokenMetadataFormProps {
   isOwner: boolean;
   onSave?: (metadata: TokenMetadata) => void;
   initialMetadata?: TokenMetadata;
+  isPreDeployment?: boolean;
+  onPreDeploymentSave?: (metadata: TokenMetadata) => void;
+  showPreviews?: boolean;
 }
 
 export const TokenMetadataForm: React.FC<TokenMetadataFormProps> = ({
@@ -31,7 +36,10 @@ export const TokenMetadataForm: React.FC<TokenMetadataFormProps> = ({
   tokenSymbol,
   isOwner,
   onSave,
-  initialMetadata
+  initialMetadata,
+  isPreDeployment = false,
+  onPreDeploymentSave,
+  showPreviews = false
 }) => {
   const [metadata, setMetadata] = useState<TokenMetadata>({
     tokenAddress,
@@ -39,6 +47,7 @@ export const TokenMetadataForm: React.FC<TokenMetadataFormProps> = ({
     symbol: tokenSymbol || '',
     description: '',
     logoUrl: '',
+    logoData: '',
     websiteUrl: '',
     twitterUrl: '',
     telegramUrl: '',
@@ -54,6 +63,7 @@ export const TokenMetadataForm: React.FC<TokenMetadataFormProps> = ({
   const [isSaving, setIsSaving] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [success, setSuccess] = useState<string | null>(null);
+  const [activePreview, setActivePreview] = useState<'launchpad' | 'explorer' | 'dex'>('launchpad');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Load initial metadata if provided
@@ -62,6 +72,8 @@ export const TokenMetadataForm: React.FC<TokenMetadataFormProps> = ({
       setMetadata(initialMetadata);
       if (initialMetadata.logoUrl) {
         setLogoPreview(initialMetadata.logoUrl);
+      } else if (initialMetadata.logoData) {
+        setLogoPreview(initialMetadata.logoData);
       }
     }
   }, [initialMetadata]);
@@ -109,8 +121,14 @@ export const TokenMetadataForm: React.FC<TokenMetadataFormProps> = ({
       
       // Set file and preview
       setLogoFile(file);
-      const base64 = await metadataService.fileToBase64(file);
-      setLogoPreview(base64);
+      try {
+        const base64 = await metadataService.fileToBase64(file);
+        setLogoPreview(base64);
+        setMetadata(prev => ({ ...prev, logoData: base64 }));
+      } catch (error) {
+        console.error('Error creating logo preview:', error);
+        setErrors(prev => ({ ...prev, logo: 'Failed to create logo preview' }));
+      }
     }
   };
 
@@ -149,10 +167,18 @@ export const TokenMetadataForm: React.FC<TokenMetadataFormProps> = ({
   };
 
   // Handle form submission
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent, isPreview = false) => {
     e.preventDefault();
     
     if (!validateForm()) {
+      return;
+    }
+    
+    // If this is just a preview update, don't save to server
+    if (isPreview) {
+      if (onPreDeploymentSave) {
+        onPreDeploymentSave(metadata);
+      }
       return;
     }
     
@@ -160,32 +186,49 @@ export const TokenMetadataForm: React.FC<TokenMetadataFormProps> = ({
     setSuccess(null);
     
     try {
-      // Upload logo if selected
-      if (logoFile) {
-        setIsUploading(true);
-        const logoUrl = await metadataService.uploadLogo(tokenAddress, logoFile);
-        setMetadata(prev => ({ ...prev, logoUrl }));
-        setIsUploading(false);
-      }
-      
-      // Save metadata
-      const updatedMetadata = { ...metadata };
-      if (logoFile) {
-        updatedMetadata.logoUrl = await metadataService.uploadLogo(tokenAddress, logoFile);
-      }
-      
-      let result;
-      if (initialMetadata?.id) {
-        result = await metadataService.updateTokenMetadata(updatedMetadata);
+      if (isPreDeployment) {
+        // For pre-deployment, save to temporary storage
+        const sessionId = metadataService.getSessionId();
+        const result = await metadataService.saveTemporaryMetadata({
+          ...metadata,
+          sessionId
+        });
+        
+        setSuccess('Token metadata saved for deployment!');
+        
+        // Call onPreDeploymentSave callback if provided
+        if (onPreDeploymentSave) {
+          onPreDeploymentSave(result);
+        }
       } else {
-        result = await metadataService.saveTokenMetadata(updatedMetadata);
-      }
-      
-      setSuccess('Token metadata saved successfully!');
-      
-      // Call onSave callback if provided
-      if (onSave) {
-        onSave(result);
+        // For post-deployment, save to permanent storage
+        // Upload logo if selected
+        if (logoFile) {
+          setIsUploading(true);
+          const logoUrl = await metadataService.uploadLogo(tokenAddress, logoFile);
+          setMetadata(prev => ({ ...prev, logoUrl }));
+          setIsUploading(false);
+        }
+        
+        // Save metadata
+        const updatedMetadata = { ...metadata };
+        if (logoFile) {
+          updatedMetadata.logoUrl = await metadataService.uploadLogo(tokenAddress, logoFile);
+        }
+        
+        let result;
+        if (initialMetadata?.id) {
+          result = await metadataService.updateTokenMetadata(updatedMetadata);
+        } else {
+          result = await metadataService.saveTokenMetadata(updatedMetadata);
+        }
+        
+        setSuccess('Token metadata saved successfully!');
+        
+        // Call onSave callback if provided
+        if (onSave) {
+          onSave(result);
+        }
       }
     } catch (error) {
       console.error('Error saving metadata:', error);
@@ -199,11 +242,18 @@ export const TokenMetadataForm: React.FC<TokenMetadataFormProps> = ({
   const handleClearLogo = () => {
     setLogoFile(null);
     setLogoPreview(null);
-    setMetadata(prev => ({ ...prev, logoUrl: '' }));
+    setMetadata(prev => ({ ...prev, logoUrl: '', logoData: '' }));
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
   };
+
+  // Auto-update preview when metadata changes
+  useEffect(() => {
+    if (showPreviews && onPreDeploymentSave) {
+      handleSubmit({ preventDefault: () => {} } as React.FormEvent, true);
+    }
+  }, [metadata, showPreviews, onPreDeploymentSave]);
 
   // Render form in read-only mode if not owner
   if (!isOwner) {
@@ -371,7 +421,7 @@ export const TokenMetadataForm: React.FC<TokenMetadataFormProps> = ({
               onChange={handleChange}
               className="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
               placeholder="Token Name"
-              disabled={!!tokenName}
+              disabled={!!tokenName && !isPreDeployment}
             />
           </div>
           
@@ -386,7 +436,7 @@ export const TokenMetadataForm: React.FC<TokenMetadataFormProps> = ({
               onChange={handleChange}
               className="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
               placeholder="Symbol"
-              disabled={!!tokenSymbol}
+              disabled={!!tokenSymbol && !isPreDeployment}
             />
           </div>
         </div>
@@ -397,10 +447,10 @@ export const TokenMetadataForm: React.FC<TokenMetadataFormProps> = ({
             Token Logo
           </label>
           <div className="flex items-center space-x-4">
-            {logoPreview || initialMetadata?.logoUrl ? (
+            {logoPreview || initialMetadata?.logoUrl || initialMetadata?.logoData ? (
               <div className="relative">
                 <img 
-                  src={logoPreview || initialMetadata?.logoUrl} 
+                  src={logoPreview || initialMetadata?.logoUrl || initialMetadata?.logoData} 
                   alt="Token logo preview" 
                   className="w-16 h-16 rounded-full object-cover"
                 />
@@ -445,6 +495,37 @@ export const TokenMetadataForm: React.FC<TokenMetadataFormProps> = ({
             </div>
           </div>
         </div>
+        
+        {/* Preview Section */}
+        {showPreviews && (
+          <div className="space-y-4">
+            <h4 className="text-lg font-medium text-white">Preview</h4>
+            
+            <div className="flex space-x-2 mb-4">
+              {METADATA_PREVIEWS.map(preview => (
+                <button
+                  key={preview.type}
+                  type="button"
+                  onClick={() => setActivePreview(preview.type as 'launchpad' | 'explorer' | 'dex')}
+                  className={`px-3 py-1.5 rounded-lg text-sm transition-colors ${
+                    activePreview === preview.type
+                      ? 'bg-blue-500 text-white'
+                      : 'bg-white/10 text-gray-300 hover:bg-white/20'
+                  }`}
+                >
+                  {preview.title}
+                </button>
+              ))}
+            </div>
+            
+            <div className="bg-black/20 backdrop-blur-sm rounded-xl p-6 border border-white/10">
+              <MetadataPreviewCard 
+                metadata={metadata} 
+                previewType={METADATA_PREVIEWS.find(p => p.type === activePreview)!}
+              />
+            </div>
+          </div>
+        )}
         
         {/* Description */}
         <div>
@@ -640,7 +721,8 @@ export const TokenMetadataForm: React.FC<TokenMetadataFormProps> = ({
         {/* Submit Button */}
         <div className="flex justify-end">
           <button
-            type="submit"
+            type={isPreDeployment && onPreDeploymentSave ? 'button' : 'submit'}
+            onClick={isPreDeployment && onPreDeploymentSave ? () => handleSubmit({ preventDefault: () => {} } as React.FormEvent) : undefined}
             disabled={isSaving || isUploading}
             className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white px-6 py-3 rounded-lg font-medium transition-all duration-200 flex items-center space-x-2 disabled:opacity-50"
           >
@@ -650,7 +732,7 @@ export const TokenMetadataForm: React.FC<TokenMetadataFormProps> = ({
                 <span>{isUploading ? 'Uploading...' : 'Saving...'}</span>
               </>
             ) : (
-              <span>Save Metadata</span>
+              <span>{isPreDeployment ? 'Save & Continue' : 'Save Metadata'}</span>
             )}
           </button>
         </div>

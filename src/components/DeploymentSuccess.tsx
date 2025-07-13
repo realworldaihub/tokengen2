@@ -2,6 +2,8 @@ import React from 'react';
 import { CheckCircle, ExternalLink, Copy, Share2, Download, RefreshCw, ArrowLeft } from 'lucide-react';
 import { DeploymentResult } from '../types';
 import { TokenMetadataForm } from './TokenMetadataForm';
+import { metadataService } from '../services/metadataService';
+import { TokenMetadata } from '../types/tokenMetadata';
 
 interface DeploymentSuccessProps {
   result: DeploymentResult;
@@ -11,6 +13,31 @@ interface DeploymentSuccessProps {
 export const DeploymentSuccess: React.FC<DeploymentSuccessProps> = ({ result, onStartNew }) => {
   const [copied, setCopied] = React.useState<string | null>(null);
   const [showMetadataForm, setShowMetadataForm] = React.useState(false);
+  const [tokenMetadata, setTokenMetadata] = React.useState<TokenMetadata | null>(null);
+  const [isLoadingMetadata, setIsLoadingMetadata] = React.useState(false);
+
+  // Check if metadata already exists
+  React.useEffect(() => {
+    const checkMetadata = async () => {
+      if (result.contractAddress) {
+        setIsLoadingMetadata(true);
+        try {
+          const metadata = await metadataService.getTokenMetadata(result.contractAddress);
+          setTokenMetadata(metadata);
+          // If metadata exists, don't show the form by default
+          if (metadata) {
+            setShowMetadataForm(false);
+          }
+        } catch (error) {
+          console.error('Error fetching token metadata:', error);
+        } finally {
+          setIsLoadingMetadata(false);
+        }
+      }
+    };
+    
+    checkMetadata();
+  }, [result.contractAddress]);
 
   const copyToClipboard = (text: string, type: string) => {
     navigator.clipboard.writeText(text);
@@ -36,6 +63,12 @@ export const DeploymentSuccess: React.FC<DeploymentSuccessProps> = ({ result, on
       // Fallback for browsers without Web Share API
       copyToClipboard(result.explorerUrl, 'share');
     }
+  };
+
+  const handleMetadataSave = (metadata: TokenMetadata) => {
+    setTokenMetadata(metadata);
+    // Hide form after successful save
+    setShowMetadataForm(false);
   };
   
   // Function to add token to MetaMask
@@ -155,21 +188,105 @@ export const DeploymentSuccess: React.FC<DeploymentSuccessProps> = ({ result, on
         <div className="bg-white/5 backdrop-blur-sm rounded-xl p-8 border border-white/10 mb-8">
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-2xl font-semibold text-white">Token Metadata</h2>
-            <button
-              onClick={() => setShowMetadataForm(!showMetadataForm)}
-              className="text-blue-400 hover:text-blue-300 text-sm font-medium"
-            >
-              {showMetadataForm ? 'Hide Form' : 'Add Metadata'}
-            </button>
+            {!isLoadingMetadata && (
+              <button
+                onClick={() => setShowMetadataForm(!showMetadataForm)}
+                className="text-blue-400 hover:text-blue-300 text-sm font-medium"
+              >
+                {showMetadataForm ? 'Hide Form' : tokenMetadata ? 'Edit Metadata' : 'Add Metadata'}
+              </button>
+            )}
           </div>
           
-          {showMetadataForm ? (
+          {isLoadingMetadata ? (
+            <div className="flex items-center justify-center py-8">
+              <div className="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+            </div>
+          ) : showMetadataForm ? (
             <TokenMetadataForm
               tokenAddress={result.contractAddress}
               tokenName={result.tokenName}
               tokenSymbol={result.tokenSymbol}
               isOwner={true}
+              initialMetadata={tokenMetadata || undefined}
+              onSave={handleMetadataSave}
             />
+          ) : tokenMetadata ? (
+            <div className="bg-white/5 backdrop-blur-sm rounded-xl p-6 border border-white/10">
+              <div className="flex items-center space-x-4 mb-4">
+                {tokenMetadata.logoUrl ? (
+                  <img 
+                    src={tokenMetadata.logoUrl} 
+                    alt={tokenMetadata.name || 'Token logo'} 
+                    className="w-16 h-16 rounded-full object-cover"
+                  />
+                ) : (
+                  <div className="w-16 h-16 bg-white/10 rounded-full flex items-center justify-center">
+                    <Coins className="w-8 h-8 text-gray-400" />
+                  </div>
+                )}
+                
+                <div>
+                  <h3 className="text-xl font-semibold text-white">{tokenMetadata.name || result.tokenName}</h3>
+                  <p className="text-gray-300">{tokenMetadata.symbol || result.tokenSymbol}</p>
+                </div>
+              </div>
+              
+              {tokenMetadata.description && (
+                <p className="text-gray-300 mb-4">{tokenMetadata.description}</p>
+              )}
+              
+              {tokenMetadata.tags && tokenMetadata.tags.length > 0 && (
+                <div className="flex flex-wrap gap-2 mb-4">
+                  {tokenMetadata.tags.map(tag => (
+                    <span 
+                      key={tag} 
+                      className="px-2 py-1 bg-blue-500/20 text-blue-300 rounded-full text-xs"
+                    >
+                      {tag}
+                    </span>
+                  ))}
+                </div>
+              )}
+              
+              <div className="grid grid-cols-2 gap-4">
+                {tokenMetadata.websiteUrl && (
+                  <a 
+                    href={tokenMetadata.websiteUrl} 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="flex items-center space-x-2 text-blue-400 hover:text-blue-300"
+                  >
+                    <Globe className="w-4 h-4" />
+                    <span>Website</span>
+                  </a>
+                )}
+                
+                {tokenMetadata.twitterUrl && (
+                  <a 
+                    href={tokenMetadata.twitterUrl} 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="flex items-center space-x-2 text-blue-400 hover:text-blue-300"
+                  >
+                    <Twitter className="w-4 h-4" />
+                    <span>Twitter</span>
+                  </a>
+                )}
+                
+                {tokenMetadata.telegramUrl && (
+                  <a 
+                    href={tokenMetadata.telegramUrl} 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="flex items-center space-x-2 text-blue-400 hover:text-blue-300"
+                  >
+                    <MessageCircle className="w-4 h-4" />
+                    <span>Telegram</span>
+                  </a>
+                )}
+              </div>
+            </div>
           ) : (
             <div className="text-center py-8">
               <p className="text-gray-300 mb-4">
