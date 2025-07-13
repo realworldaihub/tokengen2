@@ -149,15 +149,9 @@ export const SolanaTokenDeployment: React.FC<SolanaTokenDeploymentProps> = ({
                   
                   {config.metadata.externalUrl && (
                     <div>
-                    <span className="text-green-400 font-medium flex items-center">
-                      <CheckCircle className="w-4 h-4 mr-1" />
-                      Ready to deploy
-                    </span>
+                      <label className="block text-sm font-medium text-gray-300 mb-1">External URL</label>
                       <div className="text-white">{config.metadata.externalUrl}</div>
-                    <span className="text-red-400 font-medium flex items-center">
-                      <AlertTriangle className="w-4 h-4 mr-1" />
-                      Insufficient balance
-                    </span>
+                    </div>
                   )}
                 </div>
               </div>
