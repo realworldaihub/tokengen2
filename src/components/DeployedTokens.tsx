@@ -10,7 +10,8 @@ import {
   Eye,
   MoreVertical,
   Download,
-  ArrowLeft
+  ArrowLeft,
+  Settings
 } from 'lucide-react';
 import { Network } from '../types';
 import { networks } from '../data/networks';
@@ -70,20 +71,20 @@ export const DeployedTokens: React.FC = () => {
             features: token.contractType.includes('Burnable') ? ['Burnable'] : [],
             status: 'verified',
             holders: 0, // Will be updated by fetchTokenStatistics
-            transfers: 0 // Will be updated by fetchTokenStatistics
-          transfers: 0, // Will be updated by fetchTokenStatistics
-          metadata: null // Will be updated by fetchTokenMetadata
+            transfers: 0, // Will be updated by fetchTokenStatistics
+            metadata: null // Will be updated by fetchTokenMetadata
+          };
         });
         setDeployedTokens(mappedTokens);
         
         // Fetch real statistics for each token
         await fetchTokenStatistics(mappedTokens);
+        
+        // Fetch metadata for each token
+        await fetchTokenMetadata(mappedTokens);
       } catch (error) {
         console.error('Error loading deployed tokens:', error);
       }
-      
-      // Fetch metadata for each token
-      await fetchTokenMetadata(mappedTokens);
     };
     
     loadDeployedTokens();
