@@ -40,6 +40,46 @@ TokenForge now supports the Solana blockchain with comprehensive integration:
 - **Airdrop Tool**: Distribute tokens to multiple addresses efficiently
 - **Devnet Airdrop**: Request SOL airdrops on Devnet for testing
 
+## 🚀 New Solana Blockchain Support
+
+TokenForge now supports the Solana blockchain with comprehensive integration:
+
+### Solana Network Support
+- **Multiple Environments**: Full support for Solana Mainnet, Devnet, and Testnet
+- **RPC Configuration**: Optimized RPC endpoints for all Solana networks
+- **Explorer Integration**: Direct links to Solana Explorer for all transactions
+
+### Solana Wallet Integration
+- **Multiple Wallet Support**: Integration with Phantom, Solflare, Backpack, and more
+- **Wallet Adapter**: Seamless connection using @solana/wallet-adapter
+- **Network Switching**: Easy switching between Solana networks
+- **Balance Display**: Real-time SOL balance checking
+
+### SPL Token Features
+- **Token Creation**: Create SPL tokens with custom parameters
+- **Metadata Support**: Add on-chain metadata to your tokens
+- **Token Management**: Send, receive, and manage your SPL tokens
+- **Airdrop Tool**: Distribute tokens to multiple addresses efficiently
+- **Devnet Airdrop**: Request SOL airdrops on Devnet for testing
+
+## 🚀 New Custom Token Metadata System
+
+TokenForge now includes a comprehensive token metadata system:
+
+### Metadata Features
+- **Token Information**: Add logos, descriptions, and links to your tokens
+- **Category Tags**: Categorize tokens with predefined tags (DeFi, Gaming, etc.)
+- **Social Links**: Add website, Twitter, Telegram, Discord, and more
+- **Logo Management**: Upload and manage token logos with IPFS integration
+- **Owner Control**: Only token owners can edit their token's metadata
+
+### Metadata Integration
+- **Creation Flow**: Add metadata during token creation or after deployment
+- **Management Interface**: Edit metadata through the token management dashboard
+- **Visual Display**: See token metadata throughout the platform
+- **API Access**: Access token metadata through dedicated API endpoints
+- **Search & Filter**: Find tokens by category or other metadata
+
 ## 🚀 New Hardhat Integration
 
 TokenForge now uses **Hardhat** for all contract deployments, providing:
@@ -71,6 +111,7 @@ The platform now operates with a secure backend service that handles all contrac
 ### Multi-Chain Support
 - **25+ Blockchain Networks**: Support for all major EVM-compatible chains and Solana
 - **MetaMask Integration**: Seamless network switching and addition
+- **Solana Wallet Integration**: Support for Phantom, Solflare, and other Solana wallets
 - **Solana Wallet Integration**: Support for Phantom, Solflare, and other Solana wallets
 - **Network Mode Toggle**: Easy switching between mainnet and testnet modes
 - **Chain Detection**: Automatic detection of connected chain
@@ -759,6 +800,7 @@ The sale explorer page includes:
   - Feature-based UI that only shows enabled features
   - Mint new tokens (owner only)
   - Burn tokens from your wallet
+  - Add and manage token metadata
   - Adjust transfer fees and recipient addresses
   - Manage holder redistribution settings
   - Create and monitor vesting schedules
@@ -775,6 +817,7 @@ The sale explorer page includes:
 - **Liquidity Lock**: Lock LP tokens for a specified duration to build trust
 - **Auto-DEX Listing**: Automatically create trading pairs after successful presales
 - **Referral System**: Earn rewards by referring others to token sales
+- **Custom Token Metadata**: Add logos, descriptions, and links to your tokens
 - **Emergency Withdraw**: Withdraw funds from active sales with a small penalty
 - **Airdrop Tool**: Send tokens to multiple addresses in a single transaction
 
@@ -1404,6 +1447,7 @@ Authorization: Bearer <jwt_token>
 /
 ├── contracts/           # Solidity contract templates
 ├── solana/              # Solana program templates
+├── solana/              # Solana program templates
 ├── scripts/             # Hardhat deployment scripts
 ├── server/              # Backend API service
 │   ├── api/             # API route handlers
@@ -1476,6 +1520,28 @@ npm run start            # Start production server
    - Check API keys are configured correctly
    - Verify network supports verification
    - Ensure contract source matches deployed bytecode
+
+### Common Solana Issues
+
+1. **Transaction Failing**:
+   - Ensure you have enough SOL for transaction fees
+   - Verify your wallet is connected to the correct network
+   - Try increasing priority fee
+
+2. **Wallet Connection Issues**:
+   - Ensure Phantom or Solflare is installed
+   - Try refreshing the page and reconnecting
+   - Check that you're signing the correct message
+
+3. **Token Creation Failures**:
+   - Check network status and RPC endpoint
+   - Ensure you have sufficient SOL for the transaction
+   - Verify token parameters are valid
+
+4. **Airdrop Failures**:
+   - Ensure recipient addresses are valid Solana addresses
+   - Check that you have sufficient token balance
+   - Reduce batch size if transaction is too large
 
 6. **General Issues**:
    - Refresh the page
