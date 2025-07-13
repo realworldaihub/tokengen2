@@ -12,6 +12,7 @@ interface LandingPageProps {
   onExploreSales?: () => void;
   onLiquidityLock?: () => void;
   onAirdrop?: () => void;
+  onSolana?: () => void;
 }
 
 export const LandingPage: React.FC<LandingPageProps> = ({ 
@@ -21,7 +22,8 @@ export const LandingPage: React.FC<LandingPageProps> = ({
   onViewTokens,
   onExploreSales,
   onLiquidityLock,
-  onAirdrop
+  onAirdrop,
+  onSolana
 }) => {
   const { isConnected } = useWallet();
   
@@ -109,9 +111,25 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               {onAirdrop && (
                 <button
                   onClick={onAirdrop}
-                  className="text-gray-300 hover:text-white transition-colors"
+                  className="text-gray-300 hover:text-white transition-colors mr-6"
+                >
+                  Airdrop Tool →
+                </button>
+              )}
+              {onSolana && (
+                <button
+                  onClick={onSolana}
+                  className="text-yellow-400 hover:text-yellow-300 text-sm font-medium"
                 >
                   Airdrop Tool
+                </button>
+              )}
+              {onSolana && (
+                <button
+                  onClick={onSolana}
+                  className="text-yellow-300 hover:text-yellow-200 transition-colors"
+                >
+                  Solana ☀️
                 </button>
               )}
             </nav>
@@ -223,18 +241,41 @@ export const LandingPage: React.FC<LandingPageProps> = ({
       {/* Networks Section */}
       <section className="px-6 py-20">
         <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-16">
+          <div className="text-center mb-8">
             <div className="flex items-center justify-center space-x-3 mb-4">
               <Layers className="w-8 h-8 text-blue-400" />
               <h3 className="text-3xl font-bold text-white">
-                Deploy Across 25+ Networks
+                Deploy Across 25+ Networks + Solana
               </h3>
             </div>
             <p className="text-gray-300 text-lg">
-              Choose from multiple blockchain networks with competitive deployment costs
+              Choose from multiple blockchain networks including Ethereum, BSC, Polygon, and Solana
             </p>
           </div>
           
+          {/* Solana Networks */}
+          <div className="mb-8">
+            <h4 className="text-xl font-semibold text-white text-center mb-4">Solana Networks</h4>
+            <div className="grid grid-cols-3 gap-4 max-w-3xl mx-auto">
+              <div className="p-3 rounded-lg border border-yellow-500/30 bg-yellow-500/10 text-center">
+                <div className="text-2xl mb-1">☀️</div>
+                <div className="text-white font-medium">Solana Mainnet</div>
+                <div className="text-xs text-yellow-300">Production</div>
+              </div>
+              <div className="p-3 rounded-lg border border-yellow-500/30 bg-yellow-500/10 text-center">
+                <div className="text-2xl mb-1">🌤️</div>
+                <div className="text-white font-medium">Solana Devnet</div>
+                <div className="text-xs text-yellow-300">Development</div>
+              </div>
+              <div className="p-3 rounded-lg border border-yellow-500/30 bg-yellow-500/10 text-center">
+                <div className="text-2xl mb-1">🌥️</div>
+                <div className="text-white font-medium">Solana Testnet</div>
+                <div className="text-xs text-yellow-300">Testing</div>
+              </div>
+            </div>
+          </div>
+          
+          <h4 className="text-xl font-semibold text-white text-center mb-4">EVM Networks</h4>
           <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
             {[
               { name: 'Ethereum', logo: '🔷' },

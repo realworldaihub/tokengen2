@@ -2,6 +2,7 @@ import React from 'react';
 import { Wallet, LogOut, Loader2, AlertCircle, RefreshCw, ArrowRight } from 'lucide-react';
 import { useWallet } from '../hooks/useWallet';
 import { useNetworkMode } from '../hooks/useNetworkMode';
+import { ChainStatus } from './ChainStatus';
 import { getMainnetChainIds, getTestnetChainIds } from '../config/chainConfig';
 import { NetworkModeToggle } from './NetworkModeToggle';
 
@@ -90,6 +91,7 @@ export const WalletConnection: React.FC = () => {
   if (error) {
     return (
       <div className="flex items-center space-x-2">
+        <ChainStatus />
         <div className="text-red-400 text-xs mr-2 max-w-[200px] truncate">
           <AlertCircle className="w-4 h-4 inline mr-1" />
           <span>{error.length > 30 ? error.slice(0, 30) + '...' : error}</span>
